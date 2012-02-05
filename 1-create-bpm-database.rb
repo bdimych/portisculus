@@ -13,7 +13,8 @@ else
 		line.gsub!(/^\s*|\s*$/, '')
 		next if line.empty?
 		skip = line.slice!(/^\s*-\s*/)
-		path, bpm = line.chomp.split(/\s*:\s*/)
+		path, bpm = line.split(/\s*:\s*/)
+		next if db[path]
 		db[path] = {
 			:skip => skip,
 			:bpm => bpm
@@ -26,7 +27,7 @@ else
 		end
 	end
 end
-puts "db loaded: total: #{db.keys.size}, nonexistent: #{dbStat[:nonexistent]}, directories: #{dbStat[:dirs]}, files: #{dbStat[:files]}, without bpm: #{dbStat[:withoutBpm]}"
+puts "db loaded: paths total: #{db.keys.size}, nonexistent: #{dbStat[:nonexistent]}, directories: #{dbStat[:dirs]}, files total: #{dbStat[:files]}, without bpm: #{dbStat[:withoutBpm]}"
 
 
 
@@ -51,7 +52,7 @@ puts 'writing db'
 File.open "#{dbFile}", 'w' do |fh|
 	db.keys.sort.each do |path|
 		skip = db[path][:skip] ? '- ' : ''
-		fh.puts "#{skip}#{path}: #{db[path][:bpm]}"
+		fh.puts "#{skip}#{path}" + (File.directory?(path) ? '' : ": #{db[path][:bpm]}")
 	end
 end
 
