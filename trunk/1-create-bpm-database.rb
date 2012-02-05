@@ -10,7 +10,9 @@ if ! File.exists? dbFile
 	exit
 else
 	File.open(dbFile).each do |line|
-		skip = line.slice!(/^-/)
+		line.gsub!(/^\s*|\s*$/, '')
+		next if line.empty?
+		skip = line.slice!(/^\s*-\s*/)
 		path, bpm = line.chomp.split(/\s*:\s*/)
 		db[path] = {
 			:skip => skip,
@@ -29,8 +31,15 @@ puts "db loaded: total: #{db.keys.size}, nonexistent: #{dbStat[:nonexistent]}, d
 
 
 
-
-
+require 'Find'
+db.keys.sort.each do |dir|
+	next if ! File.directory? dir
+	puts "doing directory #{dir}"
+	Find.find dir do |f|
+		next if ! File.file? f or f !~ /\.mp3$/i or (db[f] and db[f][:bpm])
+		puts "doing file #{f}"
+	end
+end
 
 
 
@@ -41,7 +50,8 @@ puts "db loaded: total: #{db.keys.size}, nonexistent: #{dbStat[:nonexistent]}, d
 puts 'writing db'
 File.open "#{dbFile}", 'w' do |fh|
 	db.keys.sort.each do |path|
-		fh.puts "#{db[path][:skip]}#{path}: #{db[path][:bpm]}"
+		skip = db[path][:skip] ? '- ' : ''
+		fh.puts "#{skip}#{path}: #{db[path][:bpm]}"
 	end
 end
 
