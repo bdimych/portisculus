@@ -5,7 +5,10 @@ dbFile = 'bpm-database.txt';
 puts 'reading db';
 db = {}
 dbStat = {:nonexistent => 0, :dirs => 0, :files => 0, :withoutBpm => 0}
-if File.exists? dbFile
+if ! File.exists? dbFile
+	puts "bpm database file #{dbFile} does not exist"
+	exit
+else
 	File.open(dbFile).each do |line|
 		skip = line.slice!(/^-/)
 		path, bpm = line.chomp.split(/\s*:\s*/)
