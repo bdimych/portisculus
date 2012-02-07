@@ -2,11 +2,19 @@
 
 dbFile = 'bpm-database.txt';
 
-puts 'reading db';
+
+def log(msg)
+	t = Time.now
+	puts "[#{t.strftime('%H:%M:%S')}.#{sprintf '%03u', t.usec/1000}] #{msg}"
+end
+
+
+
+log 'reading db';
 db = {}
 dbStat = {:nonexistent => 0, :dirs => 0, :files => 0, :withoutBpm => 0}
 if ! File.exists? dbFile
-	puts "bpm database file #{dbFile} does not exist"
+	log "bpm database file #{dbFile} does not exist"
 	exit
 else
 	File.open(dbFile).each do |line|
@@ -27,18 +35,35 @@ else
 		end
 	end
 end
-puts "db loaded: paths total: #{db.keys.size}, nonexistent: #{dbStat[:nonexistent]}, directories: #{dbStat[:dirs]}, files total: #{dbStat[:files]}, without bpm: #{dbStat[:withoutBpm]}"
+log "db loaded: paths total: #{db.keys.size}, nonexistent: #{dbStat[:nonexistent]}, directories: #{dbStat[:dirs]}, files total: #{dbStat[:files]}, without bpm: #{dbStat[:withoutBpm]}"
 
 
 
 
-require 'Find'
+require 'find'
+require 'fileutils'
 db.keys.sort.each do |dir|
 	next if ! File.directory? dir
-	puts "doing directory #{dir}"
+	log "doing directory #{dir}"
 	Find.find dir do |f|
 		next if ! File.file? f or f !~ /\.mp3$/i or (db[f] and db[f][:bpm])
-		puts "doing file #{f}"
+		log "doing file #{f}"
+		FileUtils.copy_entry(f, './tmp.mp3', false, false, true)
+		
+		cmd = %w(lame --decode tmp.mp3 tmp-decoded.wav)
+		log cmd.join ' '
+		if ! system *cmd
+			raise 'error decoding mp3'
+		end
+
+		cmd = 'soundstretch tmp-decoded.wav -bpm'
+		log cmd
+		IO.popen cmd do |pipe|
+			pipe.each_line do |line|
+				puts line
+			end
+		end
+		
 	end
 end
 
@@ -48,7 +73,7 @@ end
 
 
 
-puts 'writing db'
+log 'writing db'
 File.open "#{dbFile}", 'w' do |fh|
 	db.keys.sort.each do |path|
 		skip = db[path][:skip] ? '- ' : ''
@@ -56,5 +81,5 @@ File.open "#{dbFile}", 'w' do |fh|
 	end
 end
 
-puts 'the end'
+log 'the end'
 
