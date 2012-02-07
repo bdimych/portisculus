@@ -56,7 +56,7 @@ db.keys.sort.each do |dir|
 			raise 'error decoding mp3'
 		end
 
-		cmd = 'soundstretch tmp-decoded.wav -bpm'
+		cmd = 'soundstretch tmp-decoded.wav -bpm 2>&1'
 		log cmd
 		IO.popen cmd do |pipe|
 			pipe.each_line do |line|
