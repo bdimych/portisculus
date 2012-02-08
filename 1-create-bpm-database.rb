@@ -47,7 +47,9 @@ db.keys.sort.each do |dir|
 	log "doing directory #{dir}"
 	Find.find dir do |f|
 		next if ! File.file? f or f !~ /\.mp3$/i or (db[f] and db[f][:bpm])
+		
 		log "doing file #{f}"
+		
 		FileUtils.copy_entry(f, './tmp.mp3', false, false, true)
 		
 		cmd = %w(lame --decode tmp.mp3 tmp-decoded.wav)
