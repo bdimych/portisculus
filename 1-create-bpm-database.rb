@@ -5,7 +5,7 @@ dbFile = 'bpm-database.txt';
 
 def log(msg)
 	t = Time.now
-	puts "[#{t.strftime('%H:%M:%S')}.#{sprintf '%03u', t.usec/1000}] #{msg}"
+	puts "[#{t.strftime '%H:%M:%S'}.#{sprintf '%03u', t.usec/1000}] #{msg}"
 end
 
 
@@ -52,7 +52,7 @@ db.keys.sort.each do |dir|
 		
 		log "doing file #{f}"
 		
-		FileUtils.copy_entry(f, './tmp.mp3', false, false, true)
+		FileUtils.copy_entry f, './tmp.mp3', false, false, true
 		
 		cmd = %w(lame --decode tmp.mp3 tmp-decoded.wav)
 		log cmd.join ' '
