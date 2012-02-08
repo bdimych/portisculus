@@ -45,8 +45,10 @@ require 'fileutils'
 db.keys.sort.each do |dir|
 	next if ! File.directory? dir
 	log "doing directory #{dir}"
+	
 	Find.find dir do |f|
-		next if ! File.file? f or f !~ /\.mp3$/i or (db[f] and db[f][:bpm])
+		next if ! File.file? f or f !~ /\.mp3$/i
+		next if db[f] and db[f][:bpm]
 		
 		log "doing file #{f}"
 		
