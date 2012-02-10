@@ -62,9 +62,30 @@ db.keys.sort.each do |dir|
 
 		cmd = 'soundstretch tmp-decoded.wav -bpm 2>&1'
 		log cmd
+		bpm = ''
 		IO.popen cmd do |pipe|
 			pipe.each_line do |line|
 				puts line
+				bpm = $1 if line =~ /^Detected BPM rate (\d+\.\d)\s*$/
+			end
+		end
+		if ! bpm.empty?
+			log "bpm determined: #{bpm}"
+			db[f] ||= {}
+			db[f][:bpm] = bpm
+		else
+			while true
+				print 'could not determine bpm, (s)kip or try to count by (h)ands? '
+				x = STDIN.gets.chomp
+				case x
+					when 's'
+						log 'skip'
+					when 'h'
+						log 'by hands'
+						next if ! bpm = `count-bpm-by-hands.sh`
+					else next
+				end
+				break
 			end
 		end
 		
