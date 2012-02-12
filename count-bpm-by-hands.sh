@@ -5,10 +5,15 @@ set -e -o pipefail
 exec 11>&1
 exec 1>&2
 
-trap 'stty echo; echo quit >&3; sleep 0.5' EXIT
+trap 'stty echo; echo3 quit' EXIT
 
 function player {
 	'/cygdrive/c/Program Files (x86)/SMPlayer/mplayer/mplayer.exe' -slave -loop 0 -quiet tmp.mp3 | perl -n -e 's/\r//g; if (s/\e\[A\e\[K//) {print if !/^$/} else {print}'
+}
+
+function echo3 {
+	echo "$@" >&3
+	sleep 0.1
 }
 
 function usage {
@@ -16,13 +21,13 @@ function usage {
 }
 
 function seek {
-	echo pausing_keep seek $1 $2 >&3
+	echo3 pausing_keep seek $1 $2
 }
 
 function pause {
 	if [[ ! $paused ]]
 	then
-		echo pause >&3
+		echo3 pause
 		echo Paused
 		paused=1
 	fi
@@ -31,7 +36,7 @@ function pause {
 function unpause {
 	if [[ $paused ]]
 	then
-		echo pause >&3
+		echo3 pause
 		echo Playing
 		paused=
 	fi
@@ -45,13 +50,22 @@ echo Paused
 usage
 echo
 
-bpm=0
-while true
+bpm=; counter=-1
+while IFS='' read -p $'\r> ' -n1 -s k
 do
-	sleep 0.1
-	IFS='' read -p $'\r> ' -n1 -s k
-	
 	case $k in
+		' ')
+			(( $counter == -1 )) && SECONDS=0
+			counter=$(($counter+1))
+			(( $SECONDS > 0 )) && bpm=$(($counter*60/$SECONDS))
+			printf 'Counter: %3u;   seconds: %2u;   bpm: %3u\n' $counter $SECONDS $bpm
+			;;
+
+		r)
+			bpm=; counter=-1
+			echo Counter has been reset
+			;;
+			
 		'') echo ;; # enter
 		
 		p)
@@ -99,5 +113,5 @@ do
 	esac
 done
 
-echo bpm >&11
+echo $bpm >&11
 
