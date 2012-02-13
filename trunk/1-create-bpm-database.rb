@@ -14,8 +14,7 @@ log 'reading db';
 db = {}
 dbStat = {:nonexistent => 0, :dirs => 0, :files => 0, :withoutBpm => 0}
 if ! File.exists? dbFile
-	log "bpm database file #{dbFile} does not exist"
-	exit
+	raise "bpm database file #{dbFile} does not exist"
 else
 	File.open(dbFile).each do |line|
 		line.gsub!(/^\s*|\s*$/, '')
