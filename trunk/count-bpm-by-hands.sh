@@ -53,6 +53,8 @@ function unpause {
 
 function reset {
 	bpm=0
+	lastBpms=()
+	bpmAver=0
 	counter=-1
 	echo Counter has been reset
 }
@@ -61,12 +63,12 @@ exec 11>&1
 exec 1>&2
 trap 'stty echo; echo3 quit' EXIT
 exec 3> >(mplayer -slave -loop 0 -quiet tmp.mp3 | perl -n -e 's/\r//g; if (s/\e\[A\e\[K//) {print if !/^$/} else {print}')
-pause >/dev/null
+pause >tmp.txt
+reset >>tmp.txt
+usage >>tmp.txt
 sleep 1
 echo
-reset
-echo Paused
-usage
+cat tmp.txt
 echo
 
 while IFS='' read -p $'\r> ' -n1 -s k
@@ -80,13 +82,22 @@ do
 			fi
 			(( $counter == -1 )) && SECONDS=0
 			counter=$(($counter+1))
-			(( $SECONDS > 0 )) && bpm=$(($counter*60/$SECONDS))
-			printf 'Counter: %3u;   seconds: %2u;   bpm: %3u\n' $counter $SECONDS $bpm
+			if (( $SECONDS > 0 ))
+			then
+				bpm=$(($counter*60/$SECONDS))
+				lastBpms=(${lastBpms[*]} +$bpm)
+				if (( ${#lastBpms[*]} > 10 ))
+				then
+					unset lastBpms[0]
+					bpmAver=$(( ( ${lastBpms[*]} ) / 10 ))
+				fi
+			fi
+			printf 'Counter: %3u;   seconds: %2u;   bpm: %3u;   bpm average: %3u\n' $counter $SECONDS $bpm $bpmAver
 			;;
 			
 		d)
 			pause
-			echo -n "Done, bpm is $bpm (y|n|(e)nter by hands)? "
+			echo -n "Done, bpm is $bpmAver (y|n|(e)nter by hands)? "
 			while true
 			do
 				read -s -n1 k
@@ -97,7 +108,6 @@ do
 						;;
 					n)
 						echo n
-						reset
 						break
 						;;
 					e)
@@ -126,7 +136,6 @@ do
 			;;
 
 		q)
-			wasPaused=$paused
 			pause
 			echo -n 'Quit without bpm (y|n)? '
 			while true
@@ -137,7 +146,6 @@ do
 					n) echo n; break
 				esac
 			done
-			[[ $wasPaused ]] || unpause
 			;;
 
 		$'\e')
@@ -161,5 +169,5 @@ do
 	esac
 done
 
-echo $bpm >&11
+echo $bpmAver >&11
 
