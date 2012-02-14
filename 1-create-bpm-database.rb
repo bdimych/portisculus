@@ -10,6 +10,12 @@ end
 
 
 
+if `soundstretch 2>&1` !~ /SoundStretch.*Written by Olli Parviainen/
+	raise 'could not find soundstretch'
+end
+
+
+
 log 'reading db';
 db = {}
 dbStat = {:nonexistent => 0, :dirs => 0, :files => 0, :withoutBpm => 0}
