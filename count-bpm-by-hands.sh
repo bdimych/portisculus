@@ -113,7 +113,7 @@ do
 							;;
 						n)
 							echo n
-							break
+							break 2
 							;;
 						h)
 							echo h
