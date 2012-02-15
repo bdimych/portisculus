@@ -100,28 +100,31 @@ do
 			
 		d)
 			pause
-			echo -n "Done, bpm is $bpmAver (y|n|enter by (h)ands)? "
 			while true
 			do
-				read -s -n1 k
-				case $k in
-					y)
-						echo y
-						break 2
-						;;
-					n)
-						echo n
-						break
-						;;
-					h)
-						echo h
-						while true
-						do
-							read -p 'Enter bpm: ' bpmAver
-							[[ $bpmAver =~ ^[0-9]+$ ]] && break
-							echo Only digits please
-						done
-				esac
+				echo -n "Done, bpm is $bpmAver (y|n|enter by (h)ands)? "
+				while true
+				do
+					read -s -n1 k
+					case $k in
+						y)
+							echo y
+							break 3
+							;;
+						n)
+							echo n
+							break
+							;;
+						h)
+							echo h
+							while true
+							do
+								read -p 'Enter bpm: ' bpmAver
+								[[ $bpmAver =~ ^[0-9]+$ ]] && break 2
+								echo Only digits please
+							done
+					esac
+				done
 			done
 			;;
 
