@@ -2,6 +2,10 @@
 
 set -e -o pipefail
 
+
+
+# check
+
 if ! mplayer &>/dev/null
 then
 	echo ERROR: could not find mplayer
@@ -20,13 +24,17 @@ then
 	exit 1
 fi
 
+
+
+# functions
+
 function echo3 {
 	echo "$@" >&3
 	sleep 0.1
 }
 
 function usage {
-	echo 'Usage: h - usage, p - pause, home/left/right - seek 0/-10/+10 seconds, space - count, d - counting done, r - reset counter, q - quit'
+	echo 'Usage: h - usage, p - pause, home/left/right - seek 0/-10/+10 seconds, space - count, d - counting done, r - reset counter, q or ctrl+c - quit'
 }
 
 function seek {
@@ -59,8 +67,13 @@ function reset {
 	echo Counter has been reset
 }
 
-exec 11>&1
-exec 1>&2
+
+
+# init
+
+# backup stdout and redirect it to the stderr
+exec 11>&1 1>&2
+
 echo count-bpm-by-hands.sh
 echo starting mplayer
 echo
@@ -69,14 +82,31 @@ exec 3> >(mplayer -slave -loop 0 -quiet tmp.mp3 | perl -n -e 's/\r//g; if (s/\e\
 pause >tmp.txt
 reset >>tmp.txt
 usage >>tmp.txt
-sleep 1
+sleep 1 # give mplayer some time to start and print his banner
 echo
 cat tmp.txt
 echo
 
-while IFS='' read -p $'\r> ' -n1 -s k
+trap 'wasCtrlC=1' INT # handling ctrl-c
+
+
+
+# main loop
+
+while :
 do
+	if [[ $wasCtrlC ]]
+	then
+		wasCtrlC=
+		k=q
+	else
+		IFS='' read -p $'\r> ' -n1 -s -t0.1 k || continue
+	fi
 	case $k in
+		h) usage ;;
+		r) reset ;;
+		'') echo ;; # enter
+		
 		' ')
 			if [[ $paused ]]
 			then
@@ -100,10 +130,10 @@ do
 			
 		d)
 			pause
-			while true
+			while :
 			do
-				echo -n "Done, bpm is $bpmAver (y|n|enter by (h)ands)? "
-				while true
+				echo -n "Done, bpm is $bpmAver (y, n, enter by (h)ands)? "
+				while :
 				do
 					read -s -n1 k
 					case $k in
@@ -117,7 +147,7 @@ do
 							;;
 						h)
 							echo h
-							while true
+							while :
 							do
 								read -p 'Enter bpm: ' bpmAver
 								[[ $bpmAver =~ ^[0-9]+$ ]] && break 2
@@ -128,10 +158,6 @@ do
 			done
 			;;
 
-		r) reset ;;
-			
-		'') echo ;; # enter
-		
 		p)
 			if [[ $paused ]]
 			then
@@ -143,8 +169,8 @@ do
 
 		q)
 			pause
-			echo -n 'Quit without bpm (y|n)? '
-			while true
+			echo -n 'Quit without bpm (y, n)? '
+			while :
 			do
 				read -s -n1 k
 				case $k in
@@ -153,7 +179,7 @@ do
 				esac
 			done
 			;;
-
+			
 		$'\e')
 			read -n1 -t0.1 k || continue
 			[[ $k == [ ]]    || continue
@@ -170,10 +196,12 @@ do
 			fi
 			;;
 
-		h) usage ;;
-		
 	esac
 done
+
+
+
+# print result to the original stdout
 
 echo $bpmAver >&11
 
