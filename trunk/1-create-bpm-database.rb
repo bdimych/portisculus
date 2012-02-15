@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-dbFile = 'bpm-database.txt';
+$dbFile = 'bpm-database.txt';
 
 
 def log(msg)
@@ -17,23 +17,23 @@ end
 
 
 log 'reading db';
-db = {}
+$db = {}
 dbStat = {
 	:nonexistent => 0,
 	:dirs => 0,
 	:files => 0,
 	:withoutBpm => 0
 }
-if ! File.exists? dbFile
-	raise "bpm database file #{dbFile} does not exist"
+if ! File.exists? $dbFile
+	raise "bpm database file #$dbFile does not exist"
 else
-	File.open(dbFile).each do |line|
+	File.open($dbFile).each do |line|
 		line.gsub!(/^\s*|\s*$/, '')
 		next if line.empty?
 		skip = line.slice!(/^\s*-\s*/)
 		path, bpm = line.split(/\s*:\s*/)
-		next if db[path]
-		db[path] = {
+		next if $db[path]
+		$db[path] = {
 			:skip => skip,
 			:bpm => bpm
 		}
@@ -51,6 +51,21 @@ log "db loaded: #{dbStat.inspect}"
 
 
 
+def writeDb
+	log "writing db #$dbFile"
+	File.open $dbFile, 'w' do |fh|
+		$db.keys.sort.each do |path|
+			skip = $db[path][:skip] ? '- ' : ''
+			fh.puts "#{skip}#{path}" + (File.directory?(path) ? '' : ": #{$db[path][:bpm]}")
+		end
+	end
+	log "db written, #{$db.keys.size} paths total"
+end
+
+
+
+
+
 require 'find'
 require 'fileutils'
 
@@ -62,15 +77,16 @@ dbStat = {
 	:determined => 0,
 	:failed => 0
 }
-db.keys.sort.each do |dir|
+$db.keys.sort.each do |dir|
 	next if ! File.directory? dir
 	log "doing directory #{dir}"
 	
 	Find.find dir do |f|
 		next if ! File.file? f or f !~ /\.mp3$/i
-		next if db[f] and db[f][:bpm]
+		next if $db[f] and $db[f][:bpm]
 		log "doing file #{f}"
 		dbStat[:tried] += 1
+		$db[f] ||= {}
 		
 		FileUtils.copy_entry f, './tmp.mp3', false, false, true
 		
@@ -92,12 +108,12 @@ db.keys.sort.each do |dir|
 		if ! bpm.empty?
 			log "bpm determined: #{bpm}"
 			dbStat[:determined] += 1
-			db[f] ||= {}
-			db[f][:bpm] = bpm
+			$db[f][:bpm] = bpm
 		else
 			log 'determining failed'
 			dbStat[:failed] += 1
 		end
+		writeDb
 	end
 end
 log "first pass done: #{dbStat.inspect}"
@@ -113,14 +129,14 @@ exit
 		
 # second pass
 
-db.keys.sort.each do |dir|
+$db.keys.sort.each do |dir|
 	next if ! File.directory? dir
 	log "doing directory #{dir}"
 	
 	Find.find dir do |f|
 		next if ! File.file? f or f !~ /\.mp3$/i
-		next if db[f] and db[f][:bpm]
-		db[f] ||= {}
+		next if $db[f] and $db[f][:bpm]
+		$db[f] ||= {}
 		
 		log "doing file #{f}"
 		
@@ -137,11 +153,11 @@ db.keys.sort.each do |dir|
 		IO.popen cmd do |pipe|
 			pipe.each_line do |line|
 				puts line
-				db[f][:bpm] = $1 if line =~ /^Detected BPM rate (\d+\.\d)\s*$/
+				$db[f][:bpm] = $1 if line =~ /^Detected BPM rate (\d+\.\d)\s*$/
 			end
 		end
-		if ! "#{db[f][:bpm]}".empty?
-			log "bpm determined: #{db[f][:bpm]}"
+		if ! "#{$db[f][:bpm]}".empty?
+			log "bpm determined: #{$db[f][:bpm]}"
 		else
 			while true
 				print 'could not determine bpm, (s)kip once, skip (a)lways, count by (h)ands? '
@@ -151,13 +167,13 @@ db.keys.sort.each do |dir|
 						log 'skip once'
 					when 'a'
 						log 'skip always'
-						db[f][:bpm] = 'skip always'
+						$db[f][:bpm] = 'skip always'
 					when 'h'
 						log 'by hands'
 						trap('INT') {} # let ctrl-c to pass inside
-						db[f][:bpm] = `./count-bpm-by-hands.sh`
+						$db[f][:bpm] = `./count-bpm-by-hands.sh`
 						trap 'INT', 'DEFAULT'
-						log "bpm counted: #{db[f][:bpm]}"
+						log "bpm counted: #{$db[f][:bpm]}"
 					else next
 				end
 				break
@@ -172,15 +188,6 @@ end
 
 
 
-
-
-log 'writing db'
-File.open "#{dbFile}", 'w' do |fh|
-	db.keys.sort.each do |path|
-		skip = db[path][:skip] ? '- ' : ''
-		fh.puts "#{skip}#{path}" + (File.directory?(path) ? '' : ": #{db[path][:bpm]}")
-	end
-end
 
 log 'the end'
 
