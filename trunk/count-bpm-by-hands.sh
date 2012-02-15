@@ -61,6 +61,9 @@ function reset {
 
 exec 11>&1
 exec 1>&2
+echo count-bpm-by-hands.sh
+echo starting mplayer
+echo
 trap 'stty echo; echo3 quit' EXIT
 exec 3> >(mplayer -slave -loop 0 -quiet tmp.mp3 | perl -n -e 's/\r//g; if (s/\e\[A\e\[K//) {print if !/^$/} else {print}')
 pause >tmp.txt
@@ -97,7 +100,7 @@ do
 			
 		d)
 			pause
-			echo -n "Done, bpm is $bpmAver (y|n|(e)nter by hands)? "
+			echo -n "Done, bpm is $bpmAver (y|n|enter by (h)ands)? "
 			while true
 			do
 				read -s -n1 k
@@ -110,12 +113,12 @@ do
 						echo n
 						break
 						;;
-					e)
-						echo e
+					h)
+						echo h
 						while true
 						do
-							read -p 'Enter bpm: ' bpm
-							[[ $bpm =~ ^[0-9]+$ ]] && break 3
+							read -p 'Enter bpm: ' bpmAver
+							[[ $bpmAver =~ ^[0-9]+$ ]] && break
 							echo Only digits please
 						done
 				esac
