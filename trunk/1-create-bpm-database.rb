@@ -16,14 +16,21 @@ end
 
 
 
-log 'reading db';
 $db = {}
-dbStat = {
+$dbStat = {
+	:total => 0,
 	:nonexistent => 0,
 	:dirs => 0,
 	:files => 0,
 	:withoutBpm => 0
 }
+def dbStat
+	$dbStat[:total] = $db.keys.size
+	$dbStat.inspect
+end
+
+
+log 'reading db';
 if ! File.exists? $dbFile
 	raise "bpm database file #$dbFile does not exist"
 else
@@ -37,30 +44,43 @@ else
 			:skip => skip,
 			:bpm => bpm
 		}
-		dbStat[:nonexistent] += 1 if ! File.exists? path
-		dbStat[:dirs] += 1 if File.directory? path
+		$dbStat[:nonexistent] += 1 if ! File.exists? path
+		$dbStat[:dirs] += 1 if File.directory? path
 		if File.file? path
-			dbStat[:files] += 1
-			dbStat[:withoutBpm] += 1 if ! bpm
+			$dbStat[:files] += 1
+			$dbStat[:withoutBpm] += 1 if bpm !~ /^\d+$/
 		end
 	end
 end
-log "db loaded: #{dbStat.inspect}"
+log "db loaded: #{dbStat}"
 
 
 
 
 
 def writeDb
-	log "writing db #$dbFile"
+	log "going to write db to the #$dbFile"
+	if ! $dbChanged
+		log "db was not changed: #{dbStat}, skip writing"
+		return
+	end
 	File.open $dbFile, 'w' do |fh|
 		$db.keys.sort.each do |path|
 			skip = $db[path][:skip] ? '- ' : ''
 			fh.puts "#{skip}#{path}" + (File.directory?(path) ? '' : ": #{$db[path][:bpm]}")
 		end
 	end
-	log "db written, #{$db.keys.size} paths total"
+	$dbChanged = false
+	log "db written: #{dbStat}"
 end
+at_exit {
+	alias realPuts puts
+	def puts(*args)
+		realPuts *args.map {|x| "at_exit: #{x}"}
+	end
+	writeDb
+	log "the end: #{$!.inspect}"
+}
 
 
 
@@ -72,21 +92,18 @@ require 'fileutils'
 # first pass: determine bpm only automatically and collecting statistics
 
 log 'first pass'
-dbStat = {
-	:tried => 0,
-	:determined => 0,
-	:failed => 0
-}
+$dbChanged = false
 $db.keys.sort.each do |dir|
 	next if ! File.directory? dir
 	log "doing directory #{dir}"
 	
 	Find.find dir do |f|
 		next if ! File.file? f or f !~ /\.mp3$/i
-		next if $db[f] and $db[f][:bpm]
 		log "doing file #{f}"
-		dbStat[:tried] += 1
-		$db[f] ||= {}
+		if $db[f]
+			log 'file is already in database'
+			next
+		end
 		
 		FileUtils.copy_entry f, './tmp.mp3', false, false, true
 		
@@ -96,32 +113,66 @@ $db.keys.sort.each do |dir|
 			raise 'error decoding mp3'
 		end
 
-		bpm = ''
+		bpm = false
 		cmd = 'soundstretch tmp-decoded.wav -bpm 2>&1'
 		log cmd
 		IO.popen cmd do |pipe|
 			pipe.each_line do |line|
 				puts line
-				bpm = $1 if line =~ /^Detected BPM rate (\d+)\.\d\s*$/
+				bpm = $1.to_f.round if line =~ /^Detected BPM rate (\d+\.\d)\s*$/
 			end
 		end
-		if ! bpm.empty?
+
+		$db[f] = {}
+		$dbStat[:files] += 1
+		if bpm
 			log "bpm determined: #{bpm}"
-			dbStat[:determined] += 1
 			$db[f][:bpm] = bpm
 		else
 			log 'determining failed'
-			dbStat[:failed] += 1
+			$db[f][:bpm] = 'failed'
+			$dbStat[:withoutBpm] += 1
 		end
-		writeDb
+		$dbChanged = true
+		
 	end
 end
-log "first pass done: #{dbStat.inspect}"
+log 'first pass done'
+writeDb
 
 exit
 
 
 
+
+
+
+
+
+def readChar(possibleChars)
+	begin
+		system *%w(stty raw -echo)
+		while ! possibleChars.include? c = STDIN.getc do end
+	ensure
+		system *%w(stty -raw echo)
+	end
+	c
+end
+
+if $dbStat[:withoutBpm] == 0
+	log 'done, all files has bpm'
+	exit
+else
+	print "\n"
+	print 'some files remains without bpm, count them by hands (y, n)? '
+	# case readChar()
+		# when ?y then
+		# when ?n then
+	# end
+	
+end
+
+exit
 
 
 
