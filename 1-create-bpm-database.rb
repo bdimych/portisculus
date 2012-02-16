@@ -28,6 +28,8 @@ def dbStat
 	$dbStat[:total] = $db.keys.size
 	$dbStat.inspect
 end
+$dbChanged = false
+
 
 
 log 'reading db';
@@ -38,7 +40,12 @@ else
 		line.gsub!(/^\s*|\s*$/, '')
 		next if line.empty?
 		skip = line.slice!(/^\s*-\s*/)
-		path, bpm = line.split(/\s*:\s*/)
+		path, bpm = line.split(/\s*:(?!\\)\s*/) # (?!\\) is needed for do not split dos paths C:\...
+		if path =~ /\\/ and RUBY_PLATFORM =~ /cygwin/
+			log "dos path found #{path}, converting it with the cygpath"
+			log path = %x(cygpath '#{path}').chomp
+			$dbChanged = true
+		end
 		next if $db[path]
 		$db[path] = {
 			:skip => skip,
@@ -73,10 +80,11 @@ def writeDb
 	$dbChanged = false
 	log "db written: #{dbStat}"
 end
+
 at_exit {
 	alias realPuts puts
 	def puts(*args)
-		realPuts *args.map {|x| "at_exit: #{x}"}
+		realPuts *args.map {|x| "[at_exit] #{x}"}
 	end
 	writeDb
 	log "the end: #{$!.inspect}"
@@ -92,7 +100,6 @@ require 'fileutils'
 # first pass: determine bpm only automatically and collecting statistics
 
 log 'first pass'
-$dbChanged = false
 $db.keys.sort.each do |dir|
 	next if ! File.directory? dir
 	log "doing directory #{dir}"
@@ -134,51 +141,53 @@ $db.keys.sort.each do |dir|
 			$dbStat[:withoutBpm] += 1
 		end
 		$dbChanged = true
-		
+
+		log "file done: #{dbStat}"
 	end
 end
 log 'first pass done'
 writeDb
 
-exit
 
 
 
 
 
 
-
+# prompt for second pass
 
 def readChar(possibleChars)
 	begin
-		system *%w(stty raw -echo)
-		while ! possibleChars.include? c = STDIN.getc do end
+		system *%w(stty raw isig -echo)
+		until possibleChars.include? c = STDIN.getc do end
 	ensure
 		system *%w(stty -raw echo)
 	end
+	puts c.chr
 	c
 end
 
 if $dbStat[:withoutBpm] == 0
-	log 'done, all files has bpm'
+	log 'all files has bpm'
 	exit
 else
-	print "\n"
-	print 'some files remains without bpm, count them by hands (y, n)? '
-	# case readChar()
-		# when ?y then
-		# when ?n then
-	# end
-	
+	print "\n#{$dbStat[:withoutBpm]} files remains without bpm, count them by hands (y, n)? "
+	begin
+		exit if ?n == readChar([?y, ?n])
+	ensure
+		puts
+	end
 end
 
-exit
 
 
 
 		
 		
 # second pass
+
+log 'second pass - count by hands'
+exit
 
 $db.keys.sort.each do |dir|
 	next if ! File.directory? dir
@@ -222,7 +231,7 @@ $db.keys.sort.each do |dir|
 					when 'h'
 						log 'by hands'
 						trap('INT') {} # let ctrl-c to pass inside
-						$db[f][:bpm] = `./count-bpm-by-hands.sh`
+						$db[f][:bpm] = %x(./count-bpm-by-hands.sh)
 						trap 'INT', 'DEFAULT'
 						log "bpm counted: #{$db[f][:bpm]}"
 					else next
