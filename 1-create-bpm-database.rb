@@ -145,7 +145,6 @@ $db.keys.sort.each do |dir|
 		log "file done: #{dbStat}"
 	end
 end
-log 'first pass done'
 writeDb
 
 
@@ -167,16 +166,17 @@ def readChar(possibleChars)
 	c
 end
 
-if $dbStat[:withoutBpm] == 0
-	log 'all files has bpm'
-	exit
-else
-	print "\n#{$dbStat[:withoutBpm]} files remains without bpm, count them by hands (y, n)? "
-	begin
+puts "\nfirst pass done"
+begin
+	if $dbStat[:withoutBpm] == 0
+		puts 'all files has bpm'
+		exit
+	else
+		print "#{$dbStat[:withoutBpm]} files remains without bpm, count them by hands (y, n)? "
 		exit if ?n == readChar([?y, ?n])
-	ensure
-		puts
 	end
+ensure
+	puts
 end
 
 
