@@ -19,6 +19,7 @@ end
 $db = {}
 $dbStat = {
 	:total => 0,
+	:skipped => 0,
 	:nonexistent => 0,
 	:dirs => 0,
 	:files => 0,
@@ -39,6 +40,7 @@ else
 	File.open($dbFile).each do |line|
 		line.gsub!(/^\s*|\s*$/, '')
 		next if line.empty?
+		
 		skip = line.slice!(/^\s*-\s*/)
 		path, bpm = line.split(/\s*:(?!\\)\s*/) # (?!\\) is needed for do not split dos paths C:\...
 		if path =~ /\\/ and RUBY_PLATFORM =~ /cygwin/
@@ -46,11 +48,17 @@ else
 			log "cygpath result: #{path = %x(cygpath '#{path}').chomp}"
 			$dbChanged = true
 		end
+		
 		next if $db[path]
+		
 		$db[path] = {
 			:skip => skip,
 			:bpm => bpm
 		}
+		if skip
+			$dbStat[:skipped] += 1
+			next
+		end
 		$dbStat[:nonexistent] += 1 if ! File.exists? path
 		$dbStat[:dirs] += 1 if File.directory? path
 		if File.file? path
@@ -155,15 +163,19 @@ writeDb
 
 # prompt for second pass
 
-def readChar(possibleChars)
+def readChar(prompt, possibleChars)
+	sttySettingsBck = `stty -g`.chomp
 	begin
-		system *%w(stty raw isig -echo)
-		until possibleChars.include? c = STDIN.getc do end
+		system *%w(stty raw isig opost -echo)
+		while true
+			print prompt
+			c = STDIN.getc
+			puts c.chr
+			return c if possibleChars.include? c
+		end
 	ensure
-		system *%w(stty -raw echo)
+		system 'stty', sttySettingsBck
 	end
-	puts c.chr
-	c
 end
 
 puts "\nfirst pass done"
@@ -172,8 +184,7 @@ begin
 		puts 'all files has bpm'
 		exit
 	else
-		print "#{$dbStat[:withoutBpm]} files remains without bpm, count them by hands (y, n)? "
-		exit if ?n == readChar([?y, ?n])
+		exit if ?n == readChar("#{$dbStat[:withoutBpm]} files remains without bpm, count them by hands (y, n)? ", [?y, ?n])
 	end
 ensure
 	puts
@@ -187,60 +198,20 @@ end
 # second pass
 
 log 'second pass - count by hands'
-exit
 
-$db.keys.sort.each do |dir|
-	next if ! File.directory? dir
-	log "doing directory #{dir}"
+$db.keys.sort.each do |f|
+	next if $db[f][:bpm]=~/^\d+$/ or $db[f][:skip] or ! File.file? f
+	log "doing file #{f}"
+
+	FileUtils.copy_entry f, './tmp.mp3', false, false, true
 	
-	Find.find dir do |f|
-		next if ! File.file? f or f !~ /\.mp3$/i
-		next if $db[f] and $db[f][:bpm]
-		$db[f] ||= {}
-		
-		log "doing file #{f}"
-		
-		FileUtils.copy_entry f, './tmp.mp3', false, false, true
-		
-		cmd = %w(lame --decode tmp.mp3 tmp-decoded.wav)
-		log cmd.join ' '
-		if ! system *cmd
-			raise 'error decoding mp3'
-		end
-
-		cmd = 'soundstretch tmp-decoded.wav -bpm 2>&1'
-		log cmd
-		IO.popen cmd do |pipe|
-			pipe.each_line do |line|
-				puts line
-				$db[f][:bpm] = $1 if line =~ /^Detected BPM rate (\d+\.\d)\s*$/
-			end
-		end
-		if ! "#{$db[f][:bpm]}".empty?
-			log "bpm determined: #{$db[f][:bpm]}"
-		else
-			while true
-				print 'could not determine bpm, (s)kip once, skip (a)lways, count by (h)ands? '
-				x = STDIN.gets.chomp
-				case x
-					when 's'
-						log 'skip once'
-					when 'a'
-						log 'skip always'
-						$db[f][:bpm] = 'skip always'
-					when 'h'
-						log 'by hands'
-						trap('INT') {} # let ctrl-c to pass inside
-						$db[f][:bpm] = %x(./count-bpm-by-hands.sh)
-						trap 'INT', 'DEFAULT'
-						log "bpm counted: #{$db[f][:bpm]}"
-					else next
-				end
-				break
-			end
-		end
-		
-	end
+	wasCtrlC = false
+	trap('INT') {wasCtrlC = true} # let ctrl-c to pass inside
+	$db[f][:bpm] = %x(./count-bpm-by-hands.sh)
+	raise Interrupt if wasCtrlC
+	trap 'INT', 'DEFAULT'
+	
+	log "bpm counted: #{$db[f][:bpm]}"
 end
 
 
