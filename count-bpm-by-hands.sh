@@ -34,7 +34,7 @@ function echo3 {
 }
 
 function usage {
-	echo 'Usage: h - usage, p - pause, home/left/right - seek 0/-10/+10 seconds, space - count, d - counting done, r - reset counter, q or ctrl+c - quit'
+	echo Usage: h - usage, p - pause, home/left/right - seek 0/-10/+10 seconds, space - count, d - counting done, r - reset counter, q or ctrl+c - quit
 }
 
 function seek {
@@ -62,7 +62,7 @@ function unpause {
 function reset {
 	bpm=0
 	lastBpms=()
-	bpmAver=0
+	bpmAver=
 	counter=-1
 	echo Counter has been reset
 }
@@ -87,21 +87,12 @@ echo
 cat tmp.txt
 echo
 
-trap 'wasCtrlC=1' INT # handling ctrl-c
-
 
 
 # main loop
 
-while :
+while IFS='' read -p $'\r> ' -n1 -s k
 do
-	if [[ $wasCtrlC ]]
-	then
-		wasCtrlC=
-		k=q
-	else
-		IFS='' read -p $'\r> ' -n1 -s -t0.1 k || continue
-	fi
 	case $k in
 		h) usage ;;
 		r) reset ;;
@@ -110,7 +101,7 @@ do
 		' ')
 			if [[ $paused ]]
 			then
-				echo "Counting disabled when paused"
+				echo Counting disabled when paused
 				continue
 			fi
 			(( $counter == -1 )) && SECONDS=0
@@ -125,36 +116,28 @@ do
 					bpmAver=$(( ( ${lastBpms[*]} ) / 10 ))
 				fi
 			fi
-			printf 'Counter: %3u;   seconds: %2u;   bpm: %3u;   bpm average: %3u\n' $counter $SECONDS $bpm $bpmAver
+			printf 'Counter: %3u;   seconds: %2u;   bpm: %3u;   average bpm result: %3s\n' $counter $SECONDS $bpm $bpmAver
 			;;
 			
 		d)
+			if [[ ! $bpmAver ]]
+			then
+				echo No bpm result yet
+				continue
+			fi
 			pause
-			while :
+			while read -p "Done, bpm is $bpmAver (y, n, enter by (h)ands)? " -s -n1 k
 			do
-				echo -n "Done, bpm is $bpmAver (y, n, enter by (h)ands)? "
-				while :
-				do
-					read -s -n1 k
-					case $k in
-						y)
-							echo y
-							break 3
-							;;
-						n)
-							echo n
-							break 2
-							;;
-						h)
-							echo h
-							while :
-							do
-								read -p 'Enter bpm: ' bpmAver
-								[[ $bpmAver =~ ^[0-9]+$ ]] && break 2
-								echo Only digits please
-							done
-					esac
-				done
+				echo $k
+				case $k in
+					y) break 2 ;;
+					n) break ;;
+					h)
+						while read -p 'Enter bpm (positive number): ' bpmAver
+						do
+							[[ $bpmAver =~ ^[0-9]+$ ]] && (( $bpmAver > 0 )) && bpmAver=$((bpmAver)) && break
+						done
+				esac
 			done
 			;;
 
@@ -169,13 +152,12 @@ do
 
 		q)
 			pause
-			echo -n 'Quit without bpm (y, n)? '
-			while :
+			while read -p 'Quit without bpm (y, n)? ' -s -n1 k
 			do
-				read -s -n1 k
+				echo $k
 				case $k in
-					y) echo y; exit ;;
-					n) echo n; break
+					y) exit ;;
+					n) break
 				esac
 			done
 			;;
