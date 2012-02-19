@@ -79,8 +79,7 @@ echo starting mplayer
 echo
 trap 'stty echo; echo3 quit' EXIT
 exec 3> >(mplayer -slave -loop 0 -quiet tmp.mp3 | perl -n -e 's/\r//g; if (s/\e\[A\e\[K//) {print if !/^$/} else {print}')
-pause >tmp.txt
-reset >>tmp.txt
+reset >tmp.txt
 usage >>tmp.txt
 sleep 1 # give mplayer some time to start and print his banner
 echo

@@ -3,7 +3,7 @@
 $dbFile = 'bpm-database.txt';
 
 
-def log(msg)
+def log msg
 	t = Time.now
 	puts "[#{t.strftime '%H:%M:%S'}.#{sprintf '%03u', t.usec/1000}] #{msg}"
 end
@@ -16,20 +16,45 @@ end
 
 
 
+
 $db = {}
-$dbStat = {
-	:total => 0,
-	:skipped => 0,
-	:nonexistent => 0,
-	:dirs => 0,
-	:files => 0,
-	:withoutBpm => 0
-}
+
 def dbStat
-	$dbStat[:total] = $db.keys.size
-	$dbStat.inspect
+	dbStat = {
+		:total => $db.keys.size,
+		:skipped => 0,
+		:nonexistent => 0,
+		:dirs => 0,
+		:files => 0,
+		:withoutBpm => 0
+	}
+	$db.each do |path, hash|
+		if hash[:skip]
+			dbStat[:skipped] += 1
+		elsif hash[:nonexistent]
+			dbStat[:nonexistent] += 1
+		elsif hash[:dir]
+			dbStat[:dirs] += 1
+		else
+			dbStat[:files] += 1
+			dbStat[:withoutBpm] += 1 if hash[:bpm] !~ /^\d+$/
+		end
+	end
+	dbStat
 end
-$dbChanged = false
+
+def dbSet path, key, value
+	if ! $db[path]
+		$db[path] = {}
+		$db[path][:nonexistent] = true if ! File.exists? path
+		$db[path][:dir] = true if File.directory? path
+	end
+	$db[path][key] = value
+	$dbChanged = true
+end
+
+
+
 
 
 
@@ -46,28 +71,14 @@ else
 		if path =~ /\\/ and RUBY_PLATFORM =~ /cygwin/
 			log "dos path found #{path}"
 			log "cygpath result: #{path = %x(cygpath '#{path}').chomp}"
-			$dbChanged = true
 		end
 		
-		next if $db[path]
-		
-		$db[path] = {
-			:skip => skip,
-			:bpm => bpm
-		}
-		if skip
-			$dbStat[:skipped] += 1
-			next
-		end
-		$dbStat[:nonexistent] += 1 if ! File.exists? path
-		$dbStat[:dirs] += 1 if File.directory? path
-		if File.file? path
-			$dbStat[:files] += 1
-			$dbStat[:withoutBpm] += 1 if bpm !~ /^\d+$/
-		end
+		dbSet path, :skip, skip
+		dbSet path, :bpm, bpm
 	end
 end
-log "db loaded: #{dbStat}"
+log "db loaded: #{dbStat.inspect}"
+$dbChanged = false
 
 
 
@@ -76,7 +87,7 @@ log "db loaded: #{dbStat}"
 def writeDb
 	log "going to write db to the #$dbFile"
 	if ! $dbChanged
-		log "db was not changed: #{dbStat}, skip writing"
+		log "db was not changed: #{dbStat.inspect}, skip writing"
 		return
 	end
 	File.open $dbFile, 'w' do |fh|
@@ -86,12 +97,12 @@ def writeDb
 		end
 	end
 	$dbChanged = false
-	log "db written: #{dbStat}"
+	log "db written: #{dbStat.inspect}"
 end
 
 at_exit {
 	alias realPuts puts
-	def puts(*args)
+	def puts *args
 		realPuts *args.map {|x| "[at_exit] #{x}"}
 	end
 	writeDb
@@ -138,19 +149,8 @@ $db.keys.sort.each do |dir|
 			end
 		end
 
-		$db[f] = {}
-		$dbStat[:files] += 1
-		if bpm
-			log "bpm determined: #{bpm}"
-			$db[f][:bpm] = bpm
-		else
-			log 'determining failed'
-			$db[f][:bpm] = 'failed'
-			$dbStat[:withoutBpm] += 1
-		end
-		$dbChanged = true
-
-		log "file done: #{dbStat}"
+		dbSet f, :bpm, bpm
+		log "file done: bpm result: \"#{bpm}\", dbStat: #{dbStat.inspect}"
 	end
 end
 writeDb
@@ -163,8 +163,8 @@ writeDb
 
 # prompt for second pass
 
-def readChar(prompt, possibleChars)
-	sttySettingsBck = `stty -g`.chomp
+def readChar prompt, possibleChars
+	sttySettingsBck = %x(stty -g).chomp
 	begin
 		system *%w(stty raw isig opost -echo)
 		while true
@@ -180,11 +180,11 @@ end
 
 puts "\nfirst pass done"
 begin
-	if $dbStat[:withoutBpm] == 0
-		puts 'all files has bpm'
+	if (dbStat)[:withoutBpm] == 0
+		puts 'all existent nonskipped files has bpm'
 		exit
 	else
-		exit if ?n == readChar("#{$dbStat[:withoutBpm]} files remains without bpm, count them by hands (y, n)? ", [?y, ?n])
+		exit if ?n == readChar("#{(dbStat)[:withoutBpm]} files remains without bpm, count them by hands (y, n)? ", [?y, ?n])
 	end
 ensure
 	puts
@@ -193,8 +193,8 @@ end
 
 
 
-		
-		
+
+
 # second pass
 
 log 'second pass - count by hands'
@@ -207,11 +207,28 @@ $db.keys.sort.each do |f|
 	
 	wasCtrlC = false
 	trap('INT') {wasCtrlC = true} # let ctrl-c to pass inside
-	$db[f][:bpm] = %x(./count-bpm-by-hands.sh)
+	bpm = %x(./count-bpm-by-hands.sh).chomp
 	raise Interrupt if wasCtrlC
 	trap 'INT', 'DEFAULT'
 	
-	log "bpm counted: #{$db[f][:bpm]}"
+	puts
+	puts "By hands result: \"#{bpm}\""
+	if bpm.empty?
+		case readChar("(R)etry by hands, save as (s)kipped, (n)ext file ? ", [?r, ?s, ?n])
+			when ?r
+				redo
+			when ?s
+				dbSet f, :skip, true
+			when ?n
+		end
+	else
+		dbSet f, :bpm, bpm
+	end
+	puts
+	writeDb
+	puts
+	readChar 'Press space to continue', [32]
+	puts
 end
 
 
