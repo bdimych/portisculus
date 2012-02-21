@@ -5,7 +5,7 @@ exec 11>&1 1>&2
 
 set -e -o pipefail
 
-echo count-bpm-by-hands.sh started
+echo Count-bpm-by-hands.sh started
 
 
 
@@ -81,7 +81,7 @@ function reset {
 
 # init
 
-echo starting mplayer
+echo Starting mplayer
 echo
 trap 'stty echo; echo3 quit' EXIT
 exec 3> >(cd "$(dirname "$BYHANDS")"; mplayer -slave -loop 0 -noautosub -quiet "$(basename "$BYHANDS")" | perl -n -e 's/\r//g; if (s/\e\[A\e\[K//) {print if !/^$/} else {print}')
