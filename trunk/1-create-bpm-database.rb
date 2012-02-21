@@ -201,34 +201,38 @@ log 'second pass - count by hands'
 
 $db.keys.sort.each do |f|
 	next if $db[f][:bpm]=~/^\d+$/ or $db[f][:skip] or ! File.file? f
-	log "doing file #{f}"
+
+	puts
+	puts ".#{'-'*(f.size+8)}."
+	puts "|    #{f}    |"
+	puts "'#{'-'*(f.size+8)}'"
 
 	FileUtils.copy_entry f, './tmp.mp3', false, false, true
 	
 	wasCtrlC = false
 	trap('INT') {wasCtrlC = true} # let ctrl-c to pass inside
+	ENV['BYHANDS'] = f
 	bpm = %x(./count-bpm-by-hands.sh).chomp
 	raise Interrupt if wasCtrlC
 	trap 'INT', 'DEFAULT'
 	
 	puts
-	puts "By hands result: \"#{bpm}\""
-	if bpm.empty?
-		case readChar("(R)etry by hands, save as (s)kipped, (n)ext file ? ", [?r, ?s, ?n])
-			when ?r
-				redo
-			when ?s
-				dbSet f, :skip, true
-			when ?n
-		end
-	else
-		dbSet f, :bpm, bpm
+	log "by hands result: \"#{bpm}\""
+	case bpm
+		when /^\d+$/
+			dbSet f, :bpm, bpm
+		when 'next'
+			next
+		when 'skip'
+			puts
+			dbSet f, :skip, true if ?y == readChar("save #{f} as skipped (y, n)? ", [?y, ?n])
+		else
+			raise 'unknown byhands result'
 	end
 	puts
 	writeDb
 	puts
-	readChar 'Press space to continue', [32]
-	puts
+	readChar 'press space to continue', [32]
 end
 
 
