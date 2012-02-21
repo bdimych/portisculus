@@ -1,6 +1,11 @@
 #!/bin/bash
 
+# backup stdout and redirect it to the stderr
+exec 11>&1 1>&2
+
 set -e -o pipefail
+
+echo count-bpm-by-hands.sh started
 
 
 
@@ -18,9 +23,9 @@ then
 	exit 1
 fi
 
-if [[ ! -s tmp.mp3 ]]
+if [[ ! -s $BYHANDS ]]
 then
-	echo ERROR: could not find tmp.mp3
+	echo ERROR: BYHANDS environment variable must contain path to an existent file: $BYHANDS
 	exit 1
 fi
 
@@ -71,26 +76,23 @@ function reset {
 
 # init
 
-# backup stdout and redirect it to the stderr
-exec 11>&1 1>&2
-
-echo count-bpm-by-hands.sh
 echo starting mplayer
 echo
 trap 'stty echo; echo3 quit' EXIT
-exec 3> >(mplayer -slave -loop 0 -quiet tmp.mp3 | perl -n -e 's/\r//g; if (s/\e\[A\e\[K//) {print if !/^$/} else {print}')
+exec 3> >(cd "$(dirname "$BYHANDS")"; mplayer -slave -loop 0 -noautosub -quiet "$(basename "$BYHANDS")" | perl -n -e 's/\r//g; if (s/\e\[A\e\[K//) {print if !/^$/} else {print}')
 reset >tmp.txt
 usage >>tmp.txt
 sleep 1 # give mplayer some time to start and print his banner
 echo
 cat tmp.txt
+echo PLAYING NOW - TURN SOUND ON!
 echo
 
 
 
 # main loop
 
-while IFS='' read -p $'\r> ' -n1 -s k
+while IFS='' read -p $'\r'"$BYHANDS > " -n1 -s k
 do
 	case $k in
 		h) usage ;;
@@ -185,4 +187,6 @@ done
 # print result to the original stdout
 
 echo $bpmAver >&11
+
+
 
