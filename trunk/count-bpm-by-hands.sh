@@ -33,13 +33,18 @@ fi
 
 # functions
 
+function result {
+	echo $1 >&11
+	exit
+}
+
 function echo3 {
 	echo "$@" >&3
 	sleep 0.1
 }
 
 function usage {
-	echo Usage: h - usage, p - pause, home/left/right - seek 0/-10/+10 seconds, space - count, d - counting done, r - reset counter, q or ctrl+c - quit
+	echo Usage: h - usage, p - pause, home/left/right - seek 0/-10/+10 seconds, space - count, d - counting done, r - reset counter, n - skip now and do next, s - save as skipped
 }
 
 function seek {
@@ -84,6 +89,7 @@ reset >tmp.txt
 usage >>tmp.txt
 sleep 1 # give mplayer some time to start and print his banner
 echo
+echo Doing "$BYHANDS"
 cat tmp.txt
 echo PLAYING NOW - TURN SOUND ON!
 echo
@@ -92,11 +98,13 @@ echo
 
 # main loop
 
-while IFS='' read -p $'\r'"$BYHANDS > " -n1 -s k
+while IFS='' read -p $'\r> ' -n1 -s k
 do
 	case $k in
 		h) usage ;;
 		r) reset ;;
+		n) result next ;;
+		s) result skip ;;
 		'') echo ;; # enter
 		
 		' ')
@@ -131,7 +139,7 @@ do
 			do
 				echo $k
 				case $k in
-					y) break 2 ;;
+					y) result $bpmAver ;;
 					n) break ;;
 					h)
 						while read -p 'Enter bpm (positive number): ' bpmAver
@@ -151,18 +159,6 @@ do
 			fi
 			;;
 
-		q)
-			pause
-			while read -p 'Quit without bpm (y, n)? ' -s -n1 k
-			do
-				echo $k
-				case $k in
-					y) exit ;;
-					n) break
-				esac
-			done
-			;;
-			
 		$'\e')
 			read -n1 -t0.1 k || continue
 			[[ $k == [ ]]    || continue
@@ -181,12 +177,6 @@ do
 
 	esac
 done
-
-
-
-# print result to the original stdout
-
-echo $bpmAver >&11
 
 
 
