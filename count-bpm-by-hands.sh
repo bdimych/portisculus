@@ -89,7 +89,7 @@ reset >tmp.txt
 usage >>tmp.txt
 sleep 1 # give mplayer some time to start and print his banner
 echo
-echo Doing "$BYHANDS"
+echo File "$BYHANDS"
 cat tmp.txt
 echo PLAYING NOW - TURN SOUND ON!
 echo
