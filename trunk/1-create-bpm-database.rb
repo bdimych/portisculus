@@ -68,6 +68,7 @@ else
 		
 		skip = line.slice!(/^\s*-\s*/)
 		path, bpm = line.split(/\s*:(?!\\)\s*/) # (?!\\) is needed for do not split dos paths C:\...
+		path.gsub! /^"|"$/, ''
 		if path =~ /\\/ and RUBY_PLATFORM =~ /cygwin/
 			log "dos path found #{path}"
 			log "cygpath result: #{path = %x(cygpath '#{path}').chomp}"
