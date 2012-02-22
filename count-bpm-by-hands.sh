@@ -84,7 +84,21 @@ function reset {
 echo Starting mplayer
 echo
 trap 'stty echo; echo3 quit' EXIT
-exec 3> >(cd "$(dirname "$BYHANDS")"; mplayer -slave -loop 0 -noautosub -quiet "$(basename "$BYHANDS")" | perl -n -e 's/\r//g; if (s/\e\[A\e\[K//) {print if !/^$/} else {print}')
+exec 3> >(
+	cd "$(dirname "$BYHANDS")"
+	mplayer -slave -loop 0 -noautosub -quiet -identify "$(basename "$BYHANDS")" | perl -n -e '
+		s/\r//g;
+		if (s/\e\[A\e\[K//) { # cut terminal control sequences
+			print if !/^$/
+		}
+		elsif (/^ID_([A-Z\d_]+)=/) { # print ID_ only for LENGTH
+			print if $1 eq "LENGTH"
+		}
+		else {
+			print
+		}
+	'
+)
 reset >tmp.txt
 usage >>tmp.txt
 sleep 1 # give mplayer some time to start and print his banner
