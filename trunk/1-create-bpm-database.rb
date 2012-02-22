@@ -37,7 +37,7 @@ def dbStat
 			dbStat[:dirs] += 1
 		else
 			dbStat[:files] += 1
-			dbStat[:withoutBpm] += 1 if hash[:bpm] !~ /^\d+$/
+			dbStat[:withoutBpm] += 1 if ! bpmOk? hash[:bpm]
 		end
 	end
 	dbStat
@@ -51,6 +51,10 @@ def dbSet path, key, value
 	end
 	$db[path][key] = value
 	$dbChanged = true
+end
+
+def bpmOk? bpm
+	bpm =~ /^\d+$/ and bpm.to_i > 0
 end
 
 
@@ -95,7 +99,7 @@ def writeDb
 	File.open $dbFile, 'w' do |fh|
 		$db.keys.sort.each do |path|
 			skip = $db[path][:skip] ? '- ' : ''
-			fh.puts "#{skip}#{path}" + (File.directory?(path) ? '' : ": #{$db[path][:bpm]}")
+			fh.puts "#{skip}#{path}" + (File.directory?(path) ? '/' : ": #{$db[path][:bpm]}")
 		end
 	end
 	$dbChanged = false
@@ -186,7 +190,18 @@ begin
 		puts 'all existent nonskipped files has bpm'
 		exit
 	else
-		exit if ?n == readChar("#{(dbStat)[:withoutBpm]} files remains without bpm, count them by hands (y, n)? ", [?y, ?n])
+		while true
+			case readChar "#{(dbStat)[:withoutBpm]} files remains without bpm, count them by hands (y, n, (l)ist)? ", [?y, ?n, ?l]
+				when ?y
+					break
+				when ?n
+					exit
+				when ?l
+					$db.keys.sort.each do |f|
+						puts f if ! bpmOk? $db[f][:bpm]
+					end
+			end
+		end
 	end
 ensure
 	puts
@@ -202,7 +217,7 @@ end
 log 'second pass - count by hands'
 
 $db.keys.sort.each do |f|
-	next if $db[f][:bpm]=~/^\d+$/ or $db[f][:skip] or ! File.file? f
+	next if bpmOk? $db[f][:bpm] or $db[f][:skip] or ! File.file? f
 
 	puts
 	puts ".#{'-'*(f.size+8)}."
