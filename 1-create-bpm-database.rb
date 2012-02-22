@@ -54,7 +54,7 @@ def dbSet path, key, value
 end
 
 def bpmOk? bpm
-	bpm =~ /^\d+$/ and bpm.to_i > 0
+	bpm.to_s =~ /^\d+$/ and bpm.to_i > 0
 end
 
 def withoutBpm? path
@@ -66,6 +66,7 @@ end
 
 
 
+require 'pathname'
 log 'reading db';
 if ! File.exists? $dbFile
 	raise "bpm database file #$dbFile does not exist"
@@ -82,6 +83,7 @@ else
 			log "cygpath result: #{path = %x(cygpath "#{path}").chomp}"
 			raise "cygpath failed: #$?" if $? != 0
 		end
+		path = Pathname.new(path).cleanpath.to_s
 		
 		dbSet path, :skip, skip
 		dbSet path, :bpm, bpm
@@ -126,7 +128,7 @@ at_exit {
 require 'find'
 require 'fileutils'
 
-# first pass: determine bpm only automatically and collecting statistics
+# first pass: try to determine bpm automatically
 
 log 'first pass'
 $db.keys.sort.each do |dir|
@@ -149,7 +151,7 @@ $db.keys.sort.each do |dir|
 			raise 'error decoding mp3'
 		end
 
-		bpm = false
+		bpm = ''
 		cmd = 'soundstretch tmp-decoded.wav -bpm 2>&1'
 		log cmd
 		IO.popen cmd do |pipe|
@@ -217,7 +219,7 @@ end
 
 
 
-# second pass
+# second pass - count by hands
 
 log 'second pass - count by hands'
 
@@ -254,7 +256,8 @@ $db.keys.sort.each do |f|
 	puts
 	writeDb
 	puts
-	readChar 'press space to continue', [32]
+	print 'press Enter to continue'
+	gets
 end
 
 
