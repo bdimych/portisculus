@@ -71,7 +71,8 @@ else
 		path.gsub! /^"|"$/, ''
 		if path =~ /\\/ and RUBY_PLATFORM =~ /cygwin/
 			log "dos path found #{path}"
-			log "cygpath result: #{path = %x(cygpath '#{path}').chomp}"
+			log "cygpath result: #{path = %x(cygpath "#{path}").chomp}"
+			raise "cygpath failed: #$?" if $? != 0
 		end
 		
 		dbSet path, :skip, skip
