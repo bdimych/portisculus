@@ -57,6 +57,10 @@ def bpmOk? bpm
 	bpm =~ /^\d+$/ and bpm.to_i > 0
 end
 
+def withoutBpm? path
+	File.file? path and ! $db[path][:skip] and ! bpmOk? $db[path][:bpm]
+end
+
 
 
 
@@ -198,8 +202,9 @@ begin
 					exit
 				when ?l
 					$db.keys.sort.each do |f|
-						puts f if ! bpmOk? $db[f][:bpm]
+						puts f if withoutBpm? f
 					end
+					puts
 			end
 		end
 	end
