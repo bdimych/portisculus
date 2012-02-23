@@ -191,13 +191,14 @@ def readChar prompt, possibleChars
 end
 
 puts "\nfirst pass done"
+pass2 = [0, (dbStat)[:withoutBpm]]
 begin
-	if (dbStat)[:withoutBpm] == 0
+	if pass2[1] == 0
 		puts 'all existent nonskipped files has bpm'
 		exit
 	else
 		while true
-			case readChar "#{(dbStat)[:withoutBpm]} files remains without bpm, count them by hands (y, n, (l)ist)? ", [?y, ?n, ?l]
+			case readChar "#{pass2[1]} files remains without bpm, count them by hands (y, n, (l)ist)? ", [?y, ?n, ?l]
 				when ?y
 					break
 				when ?n
@@ -226,10 +227,13 @@ log 'second pass - count by hands'
 $db.keys.sort.each do |f|
 	next if bpmOk? $db[f][:bpm] or $db[f][:skip] or ! File.file? f
 
+	pass2[0] += 1
+	progress = "Second pass: #{pass2[0]} from #{pass2[1]}"
 	puts
-	puts ".#{'-'*(f.size+8)}."
-	puts "|    #{f}    |"
-	puts "'#{'-'*(f.size+8)}'"
+	puts ".#{'-' * (f.length+8+6)}."
+	puts "|    #{progress}#{' ' * (f.length+4+6-progress.length)}|"
+	puts "|    File: #{f}    |"
+	puts "'#{'-' * (f.length+8+6)}'"
 
 	FileUtils.copy_entry f, './tmp.mp3', false, false, true
 	
