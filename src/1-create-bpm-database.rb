@@ -29,7 +29,7 @@ def dbStat
 		:withoutBpm => 0
 	}
 	$db.each do |path, hash|
-		if hash[:skip]
+		if skipped? path
 			dbStat[:skipped] += 1
 		elsif hash[:nonexistent]
 			dbStat[:nonexistent] += 1
@@ -37,7 +37,7 @@ def dbStat
 			dbStat[:dirs] += 1
 		else
 			dbStat[:files] += 1
-			dbStat[:withoutBpm] += 1 if ! bpmOk? hash[:bpm]
+			dbStat[:withoutBpm] += 1 if ! bpmOk? path
 		end
 	end
 	dbStat
@@ -53,12 +53,16 @@ def dbSet path, key, value
 	$dbChanged = true
 end
 
-def bpmOk? bpm
-	bpm.to_s =~ /^\d+$/ and bpm.to_i > 0
+def bpmOk? path
+	$db[path][:bpm].to_s =~ /^\d+$/ and $db[path][:bpm].to_i > 0
 end
 
 def withoutBpm? path
-	File.file? path and ! $db[path][:skip] and ! bpmOk? $db[path][:bpm]
+	File.file? path and ! skipped? path and ! bpmOk? path
+end
+
+def skipped? path
+	$db[path][:flag] == '-'
 end
 
 
@@ -75,7 +79,7 @@ else
 		line.gsub!(/^\s*|\s*$/, '')
 		next if line.empty?
 		
-		skip = line.slice!(/^\s*-\s*/)
+		flag = line.slice!(/^\s*([+\-=])\s*/) ? $1 : nil
 		path, bpm = line.split(/\s*:(?!\\)\s*/) # (?!\\) is needed for do not split dos paths C:\...
 		path.gsub! /^"|"$/, ''
 		if path =~ /\\/ and RUBY_PLATFORM =~ /cygwin/
@@ -85,7 +89,7 @@ else
 		end
 		path = Pathname.new(path).cleanpath.to_s
 		
-		dbSet path, :skip, skip
+		dbSet path, :flag, flag
 		dbSet path, :bpm, bpm
 	end
 end
@@ -104,8 +108,7 @@ def writeDb
 	end
 	File.open $dbFile, 'w' do |fh|
 		$db.keys.sort.each do |path|
-			skip = $db[path][:skip] ? '- ' : ''
-			fh.puts "#{skip}#{path}" + (File.directory?(path) ? '/' : ": #{$db[path][:bpm]}")
+			fh.puts( ($db[path][:flag] ? "#{$db[path][:flag]} " : '') + path + (File.directory?(path) ? '/' : ": #{$db[path][:bpm]}") )
 		end
 	end
 	$dbChanged = false
@@ -225,7 +228,7 @@ end
 log 'second pass - count by hands'
 
 $db.keys.sort.each do |f|
-	next if bpmOk? $db[f][:bpm] or $db[f][:skip] or ! File.file? f
+	next if ! withoutBpm? f
 
 	pass2[0] += 1
 	progress = "Second pass: #{pass2[0]} from #{pass2[1]}"
@@ -253,7 +256,7 @@ $db.keys.sort.each do |f|
 			next
 		when 'skip'
 			puts
-			dbSet f, :skip, true if ?y == readChar("save #{f} as skipped (y, n)? ", [?y, ?n])
+			dbSet f, :flag, '-' if ?y == readChar("save #{f} as skipped (y, n)? ", [?y, ?n])
 		else
 			raise 'unknown byhands result'
 	end
