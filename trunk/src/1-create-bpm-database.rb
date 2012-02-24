@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-$dbFile = 'bpm-database.txt';
+$dbFile = '/home/bdimych/bdimych.txt/bpm-database.txt';
 
 
 def log msg
