@@ -44,7 +44,7 @@ function echo3 {
 }
 
 function usage {
-	echo Usage: h - usage, p - pause, home/left/right - seek 0/-10/+10 seconds, space - count, d - counting done, r - reset counter, n - skip now and do next, s - save as skipped
+	echo 'Usage: (u)sage, (p)ause, home/left/right - seek 0/-10/+10 seconds, space - count, counting (d)one, (r)eset counter, just go (n)ext, save as: (s)kipped, beat(l)ess'
 }
 
 function seek {
@@ -115,10 +115,11 @@ echo
 while IFS='' read -p $'\r> ' -n1 -s k
 do
 	case $k in
-		h) usage ;;
+		u) usage ;;
 		r) reset ;;
 		n) result next ;;
 		s) result skip ;;
+		l) result beatless ;;
 		'') echo ;; # enter
 		
 		' ')
