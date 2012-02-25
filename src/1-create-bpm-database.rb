@@ -22,22 +22,27 @@ $db = {}
 def dbStat
 	dbStat = {
 		:total => $db.keys.size,
-		:skipped => 0,
 		:nonexistent => 0,
 		:dirs => 0,
 		:files => 0,
+		:skipped => 0,
+		:beatless => 0,
 		:withoutBpm => 0
 	}
 	$db.each do |path, hash|
-		if skipped? path
-			dbStat[:skipped] += 1
-		elsif hash[:nonexistent]
+		if hash[:nonexistent]
 			dbStat[:nonexistent] += 1
 		elsif hash[:dir]
 			dbStat[:dirs] += 1
 		else
 			dbStat[:files] += 1
-			dbStat[:withoutBpm] += 1 if ! bpmOk? path
+		end
+		if skipped? path
+			dbStat[:skipped] += 1
+		elsif beatless? path
+			dbStat[:beatless] += 1
+		elsif withoutBpm? path
+			dbStat[:withoutBpm] += 1
 		end
 	end
 	dbStat
@@ -58,11 +63,15 @@ def bpmOk? path
 end
 
 def withoutBpm? path
-	File.file? path and ! skipped? path and ! bpmOk? path
+	! $db[path][:nonexistent] and ! $db[path][:dir] and ! skipped? path and ! beatless? path and ! bpmOk? path
 end
 
 def skipped? path
 	$db[path][:flag] == '-'
+end
+
+def beatless? path
+	$db[path][:flag] == '='
 end
 
 
@@ -257,6 +266,9 @@ $db.keys.sort.each do |f|
 		when 'skip'
 			puts
 			dbSet f, :flag, '-' if ?y == readChar("save #{f} as skipped (y, n)? ", [?y, ?n])
+		when 'beatless'
+			puts
+			dbSet f, :flag, '=' if ?y == readChar("save #{f} as beatless (y, n)? ", [?y, ?n])
 		else
 			raise 'unknown byhands result'
 	end
