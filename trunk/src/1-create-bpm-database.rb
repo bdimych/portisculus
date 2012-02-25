@@ -37,11 +37,11 @@ def dbStat
 		else
 			dbStat[:files] += 1
 		end
-		if skipped? path
+		if path.skipped?
 			dbStat[:skipped] += 1
-		elsif beatless? path
+		elsif path.beatless?
 			dbStat[:beatless] += 1
-		elsif withoutBpm? path
+		elsif path.withoutBpm?
 			dbStat[:withoutBpm] += 1
 		end
 	end
@@ -58,21 +58,22 @@ def dbSet path, key, value
 	$dbChanged = true
 end
 
-def bpmOk? path
-	$db[path][:bpm].to_s =~ /^\d+$/ and $db[path][:bpm].to_i > 0
+class String
+	def bpmOk?
+		$db[self][:bpm].to_s =~ /^\d+$/ and $db[self][:bpm].to_i > 0
+	end
+	def skipped?
+		$db[self][:flag] == '-'
+	end
+	def beatless?
+		$db[self][:flag] == '='
+	end
+	def withoutBpm?
+		! $db[self][:nonexistent] and ! $db[self][:dir] and ! self.skipped? and ! self.beatless? and ! self.bpmOk?
+	end
 end
 
-def withoutBpm? path
-	! $db[path][:nonexistent] and ! $db[path][:dir] and ! skipped? path and ! beatless? path and ! bpmOk? path
-end
 
-def skipped? path
-	$db[path][:flag] == '-'
-end
-
-def beatless? path
-	$db[path][:flag] == '='
-end
 
 
 
@@ -217,7 +218,7 @@ begin
 					exit
 				when ?l
 					$db.keys.sort.each do |f|
-						puts f if withoutBpm? f
+						puts f if f.withoutBpm?
 					end
 					puts
 			end
@@ -237,7 +238,7 @@ end
 log 'second pass - count by hands'
 
 $db.keys.sort.each do |f|
-	next if ! withoutBpm? f
+	next if ! f.withoutBpm?
 
 	pass2[0] += 1
 	progress = "Second pass: #{pass2[0]} from #{pass2[1]}"
