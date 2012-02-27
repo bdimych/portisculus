@@ -68,21 +68,6 @@ writeDb
 
 # prompt for second pass
 
-def readChar prompt, possibleChars = nil
-	sttySettingsBck = %x(stty -g).chomp
-	begin
-		system *%w(stty raw isig opost -echo)
-		while true
-			print prompt
-			c = STDIN.getc
-			puts c == 27 ? '' : c.chr # 27 - escape makes terminal doing unwanted things
-			return c if ! possibleChars or possibleChars.include? c
-		end
-	ensure
-		system 'stty', sttySettingsBck
-	end
-end
-
 puts "\nfirst pass done"
 pass2 = [0, (dbStat)[:withoutBpm]]
 begin
@@ -116,13 +101,12 @@ end
 # second pass - count by hands
 
 log 'second pass - count by hands'
-
+puts
 $db.keys.sort.each do |f|
 	next if ! f.withoutBpm?
 
 	pass2[0] += 1
 	progress = "Second pass: #{pass2[0]} from #{pass2[1]}"
-	puts
 	puts ".#{'-' * (f.length+8+6)}."
 	puts "|    #{progress}#{' ' * (f.length+4+6-progress.length)}|"
 	puts "|    File: #{f}    |"
@@ -164,6 +148,7 @@ $db.keys.sort.each do |f|
 	puts
 	puts msg
 	readChar 'press any key to continue'
+	puts
 end
 
 

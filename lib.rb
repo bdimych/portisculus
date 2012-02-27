@@ -126,3 +126,22 @@ end
 
 
 
+
+
+
+def readChar prompt, possibleChars = nil
+	sttySettingsBck = %x(stty -g).chomp
+	begin
+		system *%w(stty raw isig opost -echo)
+		while true
+			print prompt
+			c = STDIN.getc
+			puts c == 27 ? '' : c.chr # 27 - escape makes terminal doing unwanted things
+			return c if ! possibleChars or possibleChars.include? c
+		end
+	ensure
+		system 'stty', sttySettingsBck
+	end
+end
+
+
