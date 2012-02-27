@@ -4,6 +4,36 @@
 require 'lib.rb'
 
 
+playerDir = 'test'
+range = [150, 180]   # нужный диапазон bpm
+maxCoef = 1.2        # максимальный коефициент на который можно менять bpm (по моим впечатлением больше 1.2 песня уже слух корябит - непохожа на саму себя)
+
+best = false         # только лучшие песни
+ARGV.each do |a|
+	case a
+		when '-b'
+			best = true
+		when '-g'
+		else
+			raise "unknown command line parameter \"#{a}\""
+	end
+end
+
+best = ARGV[0] == 'best'   
+
+
+p ARGV
+exit
+
+
+while true
+	log 'main loop next iteration'
+	$db.keys.shuffle.each do |f|
+		next if ! f.bpmOk?
+		log "doing #{f}"
+	end
+	sleep 1
+end
 
 =begin
 bpmDb=../bdimych.txt/bpm-database.txt
@@ -39,4 +69,5 @@ do
 	read -p 'press Enter2'
 done
 
-=cut
+=end
+
