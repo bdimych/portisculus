@@ -188,15 +188,15 @@ writeDb
 
 # prompt for second pass
 
-def readChar prompt, possibleChars
+def readChar prompt, possibleChars = nil
 	sttySettingsBck = %x(stty -g).chomp
 	begin
 		system *%w(stty raw isig opost -echo)
 		while true
 			print prompt
 			c = STDIN.getc
-			puts c.chr
-			return c if possibleChars.include? c
+			puts c == 27 ? '' : c.chr # 27 - escape makes terminal doing unwanted things
+			return c if ! possibleChars or possibleChars.include? c
 		end
 	ensure
 		system 'stty', sttySettingsBck
@@ -259,6 +259,7 @@ $db.keys.sort.each do |f|
 	
 	puts
 	log "by hands result: \"#{bpm}\""
+	msg = ''
 	case bpm
 		when /^\d+$/
 			dbSet f, :bpm, bpm
@@ -266,18 +267,22 @@ $db.keys.sort.each do |f|
 			next
 		when 'skip'
 			puts
-			dbSet f, :flag, '-' if ?y == readChar("save #{f} as skipped (y, n)? ", [?y, ?n])
+			puts "file #{f}"
+			dbSet f, :flag, '-' if ?y == readChar("save as skipped (y, n)? ", [?y, ?n])
+			msg = 'skipped'
 		when 'beatless'
 			puts
-			dbSet f, :flag, '=' if ?y == readChar("save #{f} as beatless (y, n)? ", [?y, ?n])
+			puts "file #{f}"
+			dbSet f, :flag, '=' if ?y == readChar("save as beatless (y, n)? ", [?y, ?n])
+			msg = 'beatless'
 		else
 			raise 'unknown byhands result'
 	end
 	puts
 	writeDb
 	puts
-	print 'press Enter to continue'
-	gets
+	puts msg
+	readChar 'press any key to continue'
 end
 
 
