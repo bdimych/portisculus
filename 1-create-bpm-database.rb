@@ -263,6 +263,7 @@ $db.keys.sort.each do |f|
 	case bpm
 		when /^\d+$/
 			dbSet f, :bpm, bpm
+			msg = "bpm = #{bpm}"
 		when 'next'
 			next
 		when 'skip'
