@@ -44,7 +44,7 @@ function echo3 {
 }
 
 function usage {
-	echo 'Usage: (u)sage, (p)ause, home/left/right - seek 0/-10/+10 seconds, space - count, counting (d)one, (r)eset counter, just go (n)ext, save as: (s)kipped, beat(l)ess'
+	echo 'Usage: (u)sage, (p)ause, home/left/right - seek 0/-10/+10 seconds, space - count, counting (d)one, (r)eset counter, just go (n)ext, save as: "-" skipped, "=" beatless'
 }
 
 function seek {
@@ -118,8 +118,8 @@ do
 		u) usage ;;
 		r) reset ;;
 		n) result next ;;
-		s) result skip ;;
-		l) result beatless ;;
+		-) result skip ;;
+		=) result beatless ;;
 		'') echo ;; # enter
 		
 		' ')
@@ -150,8 +150,9 @@ do
 				continue
 			fi
 			pause
-			while read -p "Done, bpm is $bpmAver (y, n, enter by (h)ands)? " -s -n1 k
+			while read -p "Done, bpm is $bpmAver (Y, n, enter by (h)ands)? " -s -n1 k
 			do
+				[[ ! $k ]] && k=y # Enter means y
 				echo $k
 				case $k in
 					y) result $bpmAver ;;
