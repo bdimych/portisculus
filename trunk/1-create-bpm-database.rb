@@ -76,7 +76,7 @@ begin
 		exit
 	else
 		while true
-			case readChar "#{pass2[1]} files remains without bpm, count them by hands (y, n, (l)ist)? ", [?y, ?n, ?l]
+			case readChar "#{pass2[1]} files remains without bpm, count them by hands (Y, n, (l)ist)? ", [?y, ?n, ?l]
 				when ?y
 					break
 				when ?n
@@ -129,26 +129,31 @@ $db.keys.sort.each do |f|
 			dbSet f, :bpm, bpm
 			msg = "bpm = #{bpm}"
 		when 'next'
-			next
 		when 'skip'
 			puts
 			puts "file #{f}"
-			dbSet f, :flag, '-' if ?y == readChar("save as skipped (y, n)? ", [?y, ?n])
-			msg = 'skipped'
+			if askYesNo 'save as skipped'
+				dbSet f, :flag, '-'
+				msg = 'skipped'
+			end
 		when 'beatless'
 			puts
 			puts "file #{f}"
-			dbSet f, :flag, '=' if ?y == readChar("save as beatless (y, n)? ", [?y, ?n])
-			msg = 'beatless'
+			if askYesNo 'save as beatless'
+				dbSet f, :flag, '='
+				msg = 'beatless'
+			end
 		else
 			raise 'unknown byhands result'
 	end
 	puts
 	writeDb
 	puts
-	puts msg
-	readChar 'press any key to continue'
-	puts
+	if ! msg.empty?
+		puts msg
+		readChar 'press any key to continue'
+		puts
+	end
 end
 
 

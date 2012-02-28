@@ -136,6 +136,7 @@ def readChar prompt, possibleChars = nil
 		while true
 			print prompt
 			c = STDIN.getc
+			c = possibleChars[0] if possibleChars and c == 13 # Enter means default char
 			puts c == 27 ? '' : c.chr # 27 - escape makes terminal doing unwanted things
 			return c if ! possibleChars or possibleChars.include? c
 		end
@@ -143,5 +144,10 @@ def readChar prompt, possibleChars = nil
 		system 'stty', sttySettingsBck
 	end
 end
+
+def askYesNo prompt
+	?n != readChar("#{prompt} (Y, n)? ", [?y, ?n])
+end
+
 
 
