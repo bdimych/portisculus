@@ -34,6 +34,7 @@ fi
 # functions
 
 function result {
+	echo Result \"$1\"
 	echo $1 >&11
 	exit
 }
