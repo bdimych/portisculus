@@ -19,13 +19,18 @@ $db = {}
 
 def dbStat
 	dbStat = {
-		:total => $db.keys.size,
+		:totalPaths => $db.keys.size,
+		
 		:nonexistent => 0,
 		:dirs => 0,
 		:files => 0,
-		:skipped => 0,
+		
+		:best => 0,
 		:beatless => 0,
-		:withoutBpm => 0
+		:skipped => 0,
+		
+		:withoutBpm => 0,
+		:canBeCopied => 0
 	}
 	$db.each do |path, hash|
 		if hash[:nonexistent]
@@ -35,13 +40,13 @@ def dbStat
 		else
 			dbStat[:files] += 1
 		end
-		if path.skipped?
-			dbStat[:skipped] += 1
-		elsif path.beatless?
-			dbStat[:beatless] += 1
-		elsif path.withoutBpm?
-			dbStat[:withoutBpm] += 1
-		end
+		
+		dbStat[:best] += 1 if path.best?
+		dbStat[:beatless] += 1 if path.beatless?
+		dbStat[:skipped] += 1 if path.skipped?
+		
+		dbStat[:withoutBpm] += 1 if path.withoutBpm?
+		dbStat[:canBeCopied] += 1 if path.canBeCopied?
 	end
 	dbStat
 end
@@ -60,14 +65,22 @@ class String
 	def bpmOk?
 		$db[self][:bpm].to_s =~ /^\d+$/ and $db[self][:bpm].to_i > 0
 	end
-	def skipped?
-		$db[self][:flag] == '-'
+	
+	def best?
+		$db[self][:flag] == '+'
 	end
 	def beatless?
 		$db[self][:flag] == '='
 	end
+	def skipped?
+		$db[self][:flag] == '-'
+	end
+	
 	def withoutBpm?
 		! $db[self][:nonexistent] and ! $db[self][:dir] and ! self.skipped? and ! self.beatless? and ! self.bpmOk?
+	end
+	def canBeCopied?
+		! $db[self][:nonexistent] and ! $db[self][:dir] and ! self.skipped? and (self.bpmOk? or self.beatless?)
 	end
 end
 
