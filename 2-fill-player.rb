@@ -17,6 +17,8 @@ grep = nil
 
 
 
+# parsing command line
+
 log 'parsing command line'
 
 def usage errorMsg = nil
@@ -96,7 +98,7 @@ regular expression:      #{grep ? grep : 'none'}
 e
 usage 'no files to process' if files.empty?
 puts
-exit if ! askYesNo 'is this correct? start main loop'
+exit if ! askYesNo 'is this correct? start main program'
 
 
 
@@ -107,21 +109,8 @@ exit if ! askYesNo 'is this correct? start main loop'
 exit
 
 
-ARGV.each do |a|
-	case a
-		when '-b'
-			best = true
-		when '-g'
-		else
-			raise "unknown command line parameter \"#{a}\""
-	end
-end
+# main program
 
-best = ARGV[0] == 'best'   
-
-
-p ARGV
-exit
 
 
 while true
