@@ -7,9 +7,9 @@ require 'lib.rb'
 
 
 playerDir = '/cygdrive/e'
-range = 150..180     # нужный диапазон bpm
-maxCoef = 1.2        # максимальный коефициент на который можно менять bpm. По моим впечатлением больше 1.2 песня уже слух корябит - становится непохожа на саму себя
-bestOnly = false     # только лучшие песни
+rangeNeeded = 150..180      # нужный диапазон bpm
+rangeAllowed = [0.9, 1.2]   # максимальный коефициент на который можно менять bpm. По моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя
+bestOnly = false            # только лучшие песни
 groupBy = nil
 grep = nil
 
@@ -51,8 +51,8 @@ while ! ARGV.empty?
 			groupBy = a == '-gd' ? :dir : :bpm
 		when '-r'
 			if ARGV.shift =~ /^(\d+)-(\d+)$/
-				range = $1.to_i .. $2.to_i
-				if range.min == nil
+				rangeNeeded = Range.new $1.to_i, $2.to_i
+				if rangeNeeded.min == nil
 					usage 'first value in range is larger then the last'
 				end
 			else
@@ -85,7 +85,7 @@ if grep or bestOnly
 end
 puts <<e
 player directory:        #{playerDir}
-needed bpm range:        #{range.min}-#{range.max}
+needed bpm range:        #{rangeNeeded.min}-#{rangeNeeded.max}
 only best songs:         #{bestOnly ? 'yes' : 'no'}
 group target files by:   #{
 	case groupBy
@@ -100,16 +100,18 @@ usage 'no files to process' if filesToCopy.empty?
 puts
 #exit if ! askYesNo 'is this correct? start main program'
 puts
-puts 'STARTING MAIN PROGRAM'
-puts
 
 
 
-exit
+
 
 
 
 # main program
+
+puts 'STARTING MAIN PROGRAM'
+puts
+
 
 
 # reading alreadyInPlayer.txt
@@ -138,6 +140,7 @@ if File.file? "#{playerDir}/alreadyInPlayer.txt"
 		end
 	end
 end
+log "#{knownNamesInPlayer.size} files are already in player"
 
 
 
@@ -153,14 +156,47 @@ end
 
 
 
+
 # copy loop
+
+while true
 
 log 'copy loop'
 filesToCopy.shuffle.each_with_index do |f, i|
 	log "doing file #{i+1} from #{filesToCopy.size}: #{f}"
-#	if $db[f][:inPlayer] and 
-#	end
+	if $db[f][:inPlayer]
+		log "already in player, bpm in player: #{$db[f][:inPlayer][:bpm]}"
+		if rangeNeeded.include? $db[f][:inPlayer][:bpm].to_i
+			log "appropriate, go next file"
+			next
+		end
+		log 'out of the needed range, will process further'
+	end
+	log "original bpm: #{$db[f][:bpm]}"
+	if rangeNeeded.include? $db[f][:bpm].to_i
+		log 'appropriate, will use unchanged'
+		newBpm = $db[f][:bpm].to_i
+	else
+		log 'out of the needed range, will calculate new'
+		allowedBpms =
+			rangeNeeded.to_a &
+			Range.new(
+				($db[f][:bpm].to_i * rangeAllowed[0]).to_i,
+				($db[f][:bpm].to_i * rangeAllowed[1]).to_i
+			).to_a
+		if allowedBpms.empty?
+TODO
+		else
+			newBpm = allowedBpms.choice
+			log "allowed and needed overlay: #{allowedBpms[0]}-#{allowedBpms[-1]}"
+			log "new random bpm: #{newBpm}"
+		end
+	end
 end
+
+gets
+end
+
 
 
 
