@@ -202,7 +202,7 @@ filesToCopy.shuffle.each_with_index do |f, i|
 		srcFile = f
 	else
 		percent = sprintf '%+.1f', newBpm.to_f*100/origBpm - 100
-		log "resulted bpm: #{newBpm} (#{percent}%), going to apply soundstretch"
+		log "target bpm #{newBpm} (#{percent}%), going to apply soundstretch"
 		
 		FileUtils.copy_entry f, './tmp.mp3', false, false, true
 		
@@ -218,7 +218,9 @@ filesToCopy.shuffle.each_with_index do |f, i|
 		srcFile = 'tmp-result.mp3'
 	end
 	
-	# copy
+	# name in player
+	trgFile = "#{playerDir}/0000-#{newBpm}---#{File.basename f}"
+	log "target file #{trgFile}"
 	
 	
 end
