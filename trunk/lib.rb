@@ -9,6 +9,10 @@ def log msg
 	puts "[#{t.strftime '%H:%M:%S'}.#{sprintf '%03u', t.usec/1000}] #{msg}"
 end
 
+def wrn msg
+	log "WARNING: #{msg}"
+end
+
 
 
 

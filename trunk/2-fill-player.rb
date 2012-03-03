@@ -120,14 +120,14 @@ log 'reading alreadyInPlayer.txt'
 knownNamesInPlayer = []
 if File.file? "#{playerDir}/alreadyInPlayer.txt"
 	File.open("#{playerDir}/alreadyInPlayer.txt").each do |line|
-		# /orig/path > 1234-160---Song name.mp3
-		#              ^    ^
-		#     prefix for    bpm
-		#     ordering
-		if line =~ /^(\S.+) > (\d{4}-(\d{3})---.+\S)$/
-			origPath = $1
-			nameInPlayer = $2
-			bpmInPlayer = $3
+		# 1234-160---Song name.mp3 < /orig/path
+		# |    |
+		# |    bpm in player
+		# prefix just for ordering
+		if line =~ /^(\d{4}-(\d{3})---.+) < (.+\S)$/
+			nameInPlayer = $1
+			bpmInPlayer = $2
+			origPath = $3
 			if $db[origPath] and File.file? "#{playerDir}/#{nameInPlayer}"
 				$db[origPath][:inPlayer] = {
 					:name => nameInPlayer,
@@ -159,45 +159,43 @@ end
 
 # copy loop
 
-while true
-
 log 'copy loop'
+srand
+unsuitable = []
 filesToCopy.shuffle.each_with_index do |f, i|
 	log "doing file #{i+1} from #{filesToCopy.size}: #{f}"
 	if $db[f][:inPlayer]
-		log "already in player, bpm in player: #{$db[f][:inPlayer][:bpm]}"
+		log "already in player, bpm in player #{$db[f][:inPlayer][:bpm]}"
 		if rangeNeeded.include? $db[f][:inPlayer][:bpm].to_i
-			log "appropriate, go next file"
+			log 'appropriate, no need to copy, go next file'
 			next
 		end
-		log 'out of the needed range, will process further'
+		log 'out of the needed range, doing further'
 	end
-	log "original bpm: #{$db[f][:bpm]}"
-	if rangeNeeded.include? $db[f][:bpm].to_i
-		log 'appropriate, will use unchanged'
-		newBpm = $db[f][:bpm].to_i
+	origBpm = $db[f][:bpm].to_i
+	log "original bpm #{origBpm}"
+	if rangeNeeded.include? origBpm
+		log 'appropriate, will copy unchanged'
+		newBpm = origBpm
 	else
 		log 'out of the needed range, will calculate new'
-		allowedBpms =
-			rangeNeeded.to_a &
-			Range.new(
-				($db[f][:bpm].to_i * rangeAllowed[0]).to_i,
-				($db[f][:bpm].to_i * rangeAllowed[1]).to_i
-			).to_a
-		if allowedBpms.empty?
-TODO
+		allowedMin = (origBpm * rangeAllowed[0]).to_i
+		allowedMax = (origBpm * rangeAllowed[1]).to_i
+		log "allowed range: #{allowedMin}-#{allowedMax}"
+		allowedBpmsArr = rangeNeeded.to_a & Range.new(allowedMin, allowedMax).to_a
+		if allowedBpmsArr.empty?
+			wrn 'allowed and needed ranges do not intersect, will list such unsuitable songs at exit'
+			unsuitable.push f
+			next
 		else
-			newBpm = allowedBpms.choice
-			log "allowed and needed overlay: #{allowedBpms[0]}-#{allowedBpms[-1]}"
-			log "new random bpm: #{newBpm}"
+			log "allowed and needed intersection: #{allowedBpmsArr[0]}-#{allowedBpmsArr[-1]}"
+			newBpm = allowedBpmsArr.choice
 		end
 	end
+	if newBpm != origBpm
+		percent = sprintf '%+.1f', newBpm.to_f*100/origBpm - 100
+		log "resulted bpm: #{newBpm} (#{percent}%)"
+	else
+	end
 end
-
-gets
-end
-
-
-
-
 
