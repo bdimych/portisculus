@@ -251,15 +251,18 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	
 	
 	# copy file
+	log 'going to copy file, free space left:'
+	system 'df', $playerDir
 	if $db[f][:inPlayer]
 		log 'deleting old file'
 		rmInPlayer f
 	end
 	noSpace = false
 	while true
-		log 'copying'
+		log "copying (#{File.size(srcFile)/1024} Kb)"
 		begin
 			FileUtils.cp srcFile, trgFile, :verbose => true
+			log 'SUCCESS! :)'
 			$db[f][:inPlayer] = {
 				:name => File.basename(trgFile),
 				:bpm => newBpm
