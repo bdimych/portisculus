@@ -159,7 +159,9 @@ def saveAlreadyInPlayer
 end
 
 def rmInPlayer f
-	FileUtils.rm "#$playerDir/#{$db[f][:inPlayer][:name]}", :verbose => true
+	ff = "#$playerDir/#{$db[f][:inPlayer][:name]}"
+	log "rmInPlayer #{ff} (#{File.size(ff)/1024} Kb)"
+	FileUtils.rm ff
 	$db[f].delete :inPlayer
 	saveAlreadyInPlayer
 end
