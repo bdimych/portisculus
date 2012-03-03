@@ -8,7 +8,7 @@ require 'lib.rb'
 
 playerDir = '/cygdrive/e'
 rangeNeeded = 150..180      # нужный диапазон bpm
-rangeAllowed = [0.9, 1.2]   # максимальный коефициент на который можно менять bpm. По моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя
+rangeAllowed = [0.95, 1.15] # максимальный коефициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
 bestOnly = false            # только лучшие песни
 groupBy = nil
 grep = nil
@@ -164,6 +164,8 @@ srand
 unsuitable = []
 filesToCopy.shuffle.each_with_index do |f, i|
 	log "doing file #{i+1} from #{filesToCopy.size}: #{f}"
+	
+	# is there f already in player
 	if $db[f][:inPlayer]
 		log "already in player, bpm in player #{$db[f][:inPlayer][:bpm]}"
 		if rangeNeeded.include? $db[f][:inPlayer][:bpm].to_i
@@ -172,6 +174,8 @@ filesToCopy.shuffle.each_with_index do |f, i|
 		end
 		log 'out of the needed range, doing further'
 	end
+	
+	# determine target bpm
 	origBpm = $db[f][:bpm].to_i
 	log "original bpm #{origBpm}"
 	if rangeNeeded.include? origBpm
@@ -192,10 +196,30 @@ filesToCopy.shuffle.each_with_index do |f, i|
 			newBpm = allowedBpmsArr.choice
 		end
 	end
-	if newBpm != origBpm
-		percent = sprintf '%+.1f', newBpm.to_f*100/origBpm - 100
-		log "resulted bpm: #{newBpm} (#{percent}%)"
+	
+	# stretch if needed
+	if newBpm == origBpm
+		srcFile = f
 	else
+		percent = sprintf '%+.1f', newBpm.to_f*100/origBpm - 100
+		log "resulted bpm: #{newBpm} (#{percent}%), going to apply soundstretch"
+		
+		FileUtils.copy_entry f, './tmp.mp3', false, false, true
+		
+		log (cmd = %w(lame --decode tmp.mp3 tmp-decoded.wav)).join ' '
+		raise 'error decoding mp3' if ! system *cmd
+		
+		log (cmd = %W(soundstretch tmp-decoded.wav tmp-stretched.wav -tempo=#{percent})).join ' '
+		raise 'soundstretch failed' if ! system *cmd
+		
+		log (cmd = %w(lame --nohist --preset medium tmp-stretched.wav tmp-result.mp3)).join ' '
+		raise 'error encoding mp3' if ! system *cmd
+		
+		srcFile = 'tmp-result.mp3'
 	end
+	
+	# copy
+	
+	
 end
 
