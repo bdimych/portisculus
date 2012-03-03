@@ -6,13 +6,12 @@ require 'lib.rb'
 
 
 
-playerDir = '/cygdrive/e'
+$playerDir = '/cygdrive/e'
 rangeNeeded = 150..180      # нужный диапазон bpm
 rangeAllowed = [0.95, 1.15] # максимальный коефициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
 bestOnly = false            # только лучшие песни
 groupBy = nil
 grep = nil
-
 
 
 
@@ -59,13 +58,13 @@ while ! ARGV.empty?
 				usage 'range is specified incorrectly - should be "number-number"'
 			end
 		when '-pd'
-			playerDir = ARGV.shift
+			$playerDir = ARGV.shift
 		else
 			grep = a
 	end
 end
-playerDir = File::expand_path playerDir
-usage "player directory #{playerDir} does not exist" if ! File.directory? playerDir
+$playerDir = File::expand_path $playerDir
+usage "player directory #$playerDir does not exist" if ! File.directory? $playerDir
 log 'parsing done'
 
 puts
@@ -84,7 +83,7 @@ if grep or bestOnly
 	puts
 end
 puts <<e
-player directory:        #{playerDir}
+player directory:        #$playerDir
 needed bpm range:        #{rangeNeeded.min}-#{rangeNeeded.max}
 only best songs:         #{bestOnly ? 'yes' : 'no'}
 group target files by:   #{
@@ -107,6 +106,7 @@ puts
 
 
 
+
 # main program
 
 puts 'STARTING MAIN PROGRAM'
@@ -114,12 +114,14 @@ puts
 
 
 
-# reading alreadyInPlayer.txt
 
-log 'reading alreadyInPlayer.txt'
+# alreadyInPlayer.txt related
+
+$aipTxt = "#$playerDir/alreadyInPlayer.txt"
+log "reading #$aipTxt"
 knownNamesInPlayer = []
-if File.file? "#{playerDir}/alreadyInPlayer.txt"
-	File.open("#{playerDir}/alreadyInPlayer.txt").each do |line|
+if File.file? $aipTxt
+	File.open($aipTxt).each do |line|
 		# 1234-160---Song name.mp3 < /orig/path
 		# |    |
 		# |    bpm in player
@@ -128,7 +130,7 @@ if File.file? "#{playerDir}/alreadyInPlayer.txt"
 			nameInPlayer = $1
 			bpmInPlayer = $2
 			origPath = $3
-			if $db[origPath] and File.file? "#{playerDir}/#{nameInPlayer}"
+			if $db[origPath] and File.file? "#$playerDir/#{nameInPlayer}"
 				$db[origPath][:inPlayer] = {
 					:name => nameInPlayer,
 					:bpm => bpmInPlayer
@@ -136,11 +138,31 @@ if File.file? "#{playerDir}/alreadyInPlayer.txt"
 				knownNamesInPlayer.push nameInPlayer
 			end
 		else
-			raise "could not parse line in the alreadyInPlayer.txt: \"#{line}\""
+			raise "could not parse line in the #$aipTxt: \"#{line}\""
 		end
 	end
 end
-log "#{knownNamesInPlayer.size} files are already in player"
+log "#{knownNamesInPlayer.size} files already in player"
+
+def saveAlreadyInPlayer
+	log "saving #$aipTxt"
+	lines = []
+	$db.each_pair do |f, hash|
+		lines.push "#{hash[:inPlayer][:name]} < #{f}" if hash[:inPlayer]
+	end
+	File.open $aipTxt, 'w' do |fh|
+		lines.sort.each do |l|
+			fh.puts l
+		end
+	end
+	log "saved, #{lines.size} lines"
+end
+
+def rmInPlayer f
+	FileUtils.rm "#$playerDir/#{$db[f][:inPlayer][:name]}", :verbose => true
+	$db[f].delete :inPlayer
+	saveAlreadyInPlayer
+end
 
 
 
@@ -149,9 +171,9 @@ log "#{knownNamesInPlayer.size} files are already in player"
 
 log 'zeroing player directory'
 require 'fileutils'
-(Dir.entries(playerDir) - %w[. .. alreadyInPlayer.txt] - knownNamesInPlayer).each do |name|
-	log "deleting unknown entry #{playerDir}/#{name}"
-	FileUtils.rm_rf "#{playerDir}/#{name}"
+(Dir.entries($playerDir) - %w[. .. alreadyInPlayer.txt] - knownNamesInPlayer).each do |name|
+	log "deleting unknown entry #$playerDir/#{name}"
+	FileUtils.rm_rf "#$playerDir/#{name}"
 end
 
 
@@ -162,6 +184,7 @@ end
 log 'copy loop'
 srand
 unsuitable = []
+copied = []
 filesToCopy.shuffle.each_with_index do |f, i|
 	log "doing file #{i+1} from #{filesToCopy.size}: #{f}"
 	
@@ -219,9 +242,58 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	end
 	
 	# name in player
-	trgFile = "#{playerDir}/0000-#{newBpm}---#{File.basename f}"
+	trgFile = "#$playerDir/0000-#{newBpm}---#{File.basename f}"
 	log "target file #{trgFile}"
+	raise 'target file already exists' if File.file? trgFile # the probability is small, imho no need to do more code
 	
 	
+	
+	# copy file
+	if $db[f][:inPlayer]
+		log 'deleting old file'
+		rmInPlayer f
+	end
+	noSpace = false
+	while true
+		log 'copying'
+		begin
+			FileUtils.cp srcFile, trgFile, :verbose => true
+			$db[f][:inPlayer] = {
+				:name => File.basename(trgFile),
+				:bpm => newBpm
+			}
+			saveAlreadyInPlayer
+			copied.push f
+			break
+		rescue Errno::ENOSPC
+			FileUtils.rm trgFile # cleanup _is_required_ else next FileUtils.cp can get troubles with this partially copied file permissions
+			wrn 'NO SPACE LEFT, will try to delete some old file'
+			oldDeleted = false
+			$db.keys.each do |ff|
+				if $db[ff][:inPlayer] and ! copied.include? ff
+					rmInPlayer ff
+					oldDeleted = true
+					break
+				end
+			end
+			next if oldDeleted
+			wrn 'no old files left, can not free space any more, stop copy loop'
+			noSpace = true
+			break
+		end
+	end
+
+
+
+	# print statistics
+	
+	break if noSpace
 end
+
+log 'copy loop end'
+
+
+
+
+# grouping
 
