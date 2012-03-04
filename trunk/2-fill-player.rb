@@ -1,6 +1,5 @@
 #!/usr/bin/ruby
 
-
 require 'lib.rb'
 
 
@@ -12,6 +11,12 @@ rangeAllowed = [0.95, 1.15] # максимальный коефициент на
 bestOnly = false            # только лучшие песни
 groupBy = nil
 grep = nil
+maxNum = nil
+
+
+
+
+srand
 
 
 
@@ -28,11 +33,12 @@ def usage errorMsg = nil
 	puts <<e
 
 possible options:
-   -b           - only best songs
-   -gd          - group target files by source directories
-   -gb          - group by bpm
-   -r NNN-NNN   - needed bpm range
    -pd /player/directory
+   -r N-N   - needed bpm range
+   -n N     - maximum number of files to copy
+   -b       - copy only best songs
+   -gd      - group target files by source directories
+   -gb      - group by bpm
    remaining argument will be used as regular expression and only matched files will be copied
 e
 	exit errorMsg ? 1 : 0
@@ -45,6 +51,10 @@ end
 usage if ARGV.include? '--help'
 while ! ARGV.empty?
 	case a = ARGV.shift
+		when /-n(.*)/
+			maxNum = $1.empty? ? ARGV.shift : $1
+			usage '-n should be a number' if maxNum !~ /^\d+$/
+			maxNum = maxNum.to_i
 		when '-b'
 			bestOnly = true
 		when '-gd', '-gb'
@@ -52,8 +62,9 @@ while ! ARGV.empty?
 				usage '-gd and -gb are mutually exclusive'
 			end
 			groupBy = a == '-gd' ? :dir : :bpm
-		when '-r'
-			if ARGV.shift =~ /^(\d+)-(\d+)$/
+		when /-r(.*)/
+			val = $1.empty? ? ARGV.shift : $1
+			if val =~ /^(\d+)-(\d+)$/
 				rangeNeeded = Range.new $1.to_i, $2.to_i
 				if rangeNeeded.min == nil
 					usage 'first value in range is larger then the last'
@@ -79,16 +90,15 @@ filesToCopy = $db.keys.sort.select do |path|
 	ok
 end
 if grep or bestOnly
-	puts "#{filesToCopy.size} files found:"
-	puts '-----'
+	puts "----- regexp and/or -b was specified, #{filesToCopy.size} files matched -----"
 	filesToCopy.map {|f| puts f}
-	puts '-----'
-	puts "#{filesToCopy.size} files found"
+	puts "----- regexp and/or -b was specified, #{filesToCopy.size} files matched -----"
 	puts
 end
 puts <<e
 player directory:        #$playerDir (#{playerFreeSpace})
 needed bpm range:        #{rangeNeeded.min}-#{rangeNeeded.max}
+num of files to copy:    #{maxNum ? maxNum : 'all'} of #{filesToCopy.size}
 only best songs:         #{bestOnly ? 'yes' : 'no'}
 group target files by:   #{
 	case groupBy
@@ -192,7 +202,6 @@ end
 # copy loop
 
 log 'copy loop'
-srand
 unsuitable = []
 copied = []
 $stat = {
@@ -201,6 +210,11 @@ $stat = {
 	:startedAt => Time.now
 }
 filesToCopy.shuffle.each_with_index do |f, i|
+	if copied.size == maxNum
+		log "number of copied files has reached the specified maximum #{maxNum}, exit copy loop"
+		break
+	end
+
 	log "doing file #{i+1} from #{filesToCopy.size}: #{f}"
 	
 	# is there f already in player
