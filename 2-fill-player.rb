@@ -129,7 +129,7 @@ puts
 
 
 
-# alreadyInPlayer.txt related
+# read/write alreadyInPlayer.txt
 
 $aipTxt = "#$playerDir/alreadyInPlayer.txt"
 log "reading #$aipTxt"
@@ -173,17 +173,6 @@ def saveAlreadyInPlayer
 	$stat[:filesInPlayer] = lines.size
 end
 
-def rmInPlayer f
-	ff = "#$playerDir/#{$db[f][:inPlayer][:name]}"
-	size = File.size ff
-	log "rmInPlayer #{ff} (#{size/1024} Kb)"
-	FileUtils.rm ff
-	$db[f].delete :inPlayer
-	saveAlreadyInPlayer
-	$stat[:deleted][:files] += 1
-	$stat[:deleted][:size] += size
-end
-
 
 
 
@@ -203,14 +192,25 @@ end
 
 log 'copy loop'
 unsuitable = []
-copied = []
+added = []
+$deleted = []
 $stat = {
-	:deleted => {:files => 0, :size => 0},
-	:added => {:files => 0, :size => 0},
+	:sizeDeleted => 0,
+	:sizeAdded => 0,
 	:startedAt => Time.now
 }
+def rmInPlayer f
+	fInPlayer = "#$playerDir/#{$db[f][:inPlayer][:name]}"
+	size = File.size fInPlayer
+	log "rmInPlayer #{fInPlayer} (#{size/1024} Kb)"
+	FileUtils.rm fInPlayer
+	$db[f].delete :inPlayer
+	saveAlreadyInPlayer
+	$deleted.push f
+	$stat[:sizeDeleted] += size
+end
 filesToCopy.shuffle.each_with_index do |f, i|
-	if copied.size == maxNum
+	if added.size == maxNum
 		log "number of copied files has reached the specified maximum #{maxNum}, exit copy loop"
 		break
 	end
@@ -293,16 +293,15 @@ filesToCopy.shuffle.each_with_index do |f, i|
 				:bpm => newBpm
 			}
 			saveAlreadyInPlayer
-			copied.push f
-			$stat[:added][:files] += 1
-			$stat[:added][:size] += File.size srcFile
+			added.push f
+			$stat[:sizeAdded] += File.size srcFile
 			break
 		rescue Errno::ENOSPC
 			FileUtils.rm trgFile # cleanup _is_required_ else next FileUtils.cp can get troubles with this partially copied file permissions
 			wrn 'NO SPACE LEFT, will try to delete some old file'
 			oldDeleted = false
 			$db.keys.each do |ff|
-				if $db[ff][:inPlayer] and ! copied.include? ff
+				if $db[ff][:inPlayer] and ! added.include? ff
 					rmInPlayer ff
 					oldDeleted = true
 					break
@@ -320,9 +319,9 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	execTime = Time.now - $stat[:startedAt]
 	log "file done, copy loop statistics:
                time:    #{execTime.round} seconds
-               deleted: #{$stat[:deleted][:files]} files / #{$stat[:deleted][:size]/1024/1024} Mb
-               added:   #{$stat[:added][:files]} files / #{$stat[:added][:size]/1024/1024} Mb
-               speed:   #{sprintf '%.1f', $stat[:added][:files]/execTime} files / #{sprintf '%.1f', $stat[:added][:size]/1024/1024/execTime} Mb per second
+               deleted: #{$deleted.size} files / #{$stat[:sizeDeleted]/1024/1024} Mb
+               added:   #{added.size} files / #{$stat[:sizeAdded]/1024/1024} Mb
+               speed:   #{sprintf '%.1f', added.size/execTime} files / #{sprintf '%.1f', $stat[:sizeAdded]/1024/1024/execTime} Mb per second
                player:  #{$stat[:filesInPlayer]} files, #{playerFreeSpace}
 "
 
@@ -330,6 +329,10 @@ filesToCopy.shuffle.each_with_index do |f, i|
 end
 
 log 'copy loop end'
+puts 'deleted:'
+puts $deleted.join "\n"
+puts 'added:'
+puts added.join "\n"
 
 
 
