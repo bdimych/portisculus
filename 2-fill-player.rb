@@ -38,6 +38,10 @@ e
 	exit errorMsg ? 1 : 0
 end
 
+def playerFreeSpace
+	%x(df #$playerDir).split("\n")[1].split(/ +/)[3] + ' Kb free'
+end
+
 usage if ARGV.include? '--help'
 while ! ARGV.empty?
 	case a = ARGV.shift
@@ -83,7 +87,7 @@ if grep or bestOnly
 	puts
 end
 puts <<e
-player directory:        #$playerDir
+player directory:        #$playerDir (#{playerFreeSpace})
 needed bpm range:        #{rangeNeeded.min}-#{rangeNeeded.max}
 only best songs:         #{bestOnly ? 'yes' : 'no'}
 group target files by:   #{
@@ -97,7 +101,7 @@ regular expression:      #{grep ? grep : 'none'}
 e
 usage 'no files to process' if filesToCopy.empty?
 puts
-#exit if ! askYesNo 'is this correct? start main program'
+exit if ! askYesNo 'is this correct? start main program'
 puts
 
 
@@ -156,14 +160,18 @@ def saveAlreadyInPlayer
 		end
 	end
 	log "saved, #{lines.size} lines"
+	$stat[:filesInPlayer] = lines.size
 end
 
 def rmInPlayer f
 	ff = "#$playerDir/#{$db[f][:inPlayer][:name]}"
-	log "rmInPlayer #{ff} (#{File.size(ff)/1024} Kb)"
+	size = File.size ff
+	log "rmInPlayer #{ff} (#{size/1024} Kb)"
 	FileUtils.rm ff
 	$db[f].delete :inPlayer
 	saveAlreadyInPlayer
+	$stat[:deleted][:files] += 1
+	$stat[:deleted][:size] += size
 end
 
 
@@ -187,6 +195,11 @@ log 'copy loop'
 srand
 unsuitable = []
 copied = []
+$stat = {
+	:deleted => {:files => 0, :size => 0},
+	:added => {:files => 0, :size => 0},
+	:startedAt => Time.now
+}
 filesToCopy.shuffle.each_with_index do |f, i|
 	log "doing file #{i+1} from #{filesToCopy.size}: #{f}"
 	
@@ -251,8 +264,6 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	
 	
 	# copy file
-	log 'going to copy file, free space left:'
-	system 'df', $playerDir
 	if $db[f][:inPlayer]
 		log 'deleting old file'
 		rmInPlayer f
@@ -269,6 +280,8 @@ filesToCopy.shuffle.each_with_index do |f, i|
 			}
 			saveAlreadyInPlayer
 			copied.push f
+			$stat[:added][:files] += 1
+			$stat[:added][:size] += File.size srcFile
 			break
 		rescue Errno::ENOSPC
 			FileUtils.rm trgFile # cleanup _is_required_ else next FileUtils.cp can get troubles with this partially copied file permissions
@@ -290,8 +303,15 @@ filesToCopy.shuffle.each_with_index do |f, i|
 
 
 
-	# print statistics
-	
+	execTime = Time.now - $stat[:startedAt]
+	log "file done, copy loop statistics:
+               time:    #{execTime.round} seconds
+               deleted: #{$stat[:deleted][:files]} files / #{$stat[:deleted][:size]/1024/1024} Mb
+               added:   #{$stat[:added][:files]} files / #{$stat[:added][:size]/1024/1024} Mb
+               speed:   #{sprintf '%.1f', $stat[:added][:files]/execTime} files / #{sprintf '%.1f', $stat[:added][:size]/1024/1024/execTime} Mb per second
+               player:  #{$stat[:filesInPlayer]} files, #{playerFreeSpace}
+"
+
 	break if noSpace
 end
 
