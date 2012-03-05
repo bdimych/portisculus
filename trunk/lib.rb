@@ -69,6 +69,9 @@ class String
 	def bpmOk?
 		$db[self][:bpm].to_s =~ /^\d+$/ and $db[self][:bpm].to_i > 0
 	end
+	def exists?
+		! $db[self][:nonexistent]
+	end
 	
 	def best?
 		$db[self][:flag] == '+'
@@ -81,10 +84,10 @@ class String
 	end
 	
 	def withoutBpm?
-		! $db[self][:nonexistent] and ! $db[self][:dir] and ! self.skipped? and ! self.beatless? and ! self.bpmOk?
+		self.exists? and ! $db[self][:dir] and ! self.skipped? and ! self.beatless? and ! self.bpmOk?
 	end
 	def canBeCopied?
-		! $db[self][:nonexistent] and ! $db[self][:dir] and ! self.skipped? and (self.bpmOk? or self.beatless?)
+		self.exists? and ! $db[self][:dir] and ! self.skipped? and (self.bpmOk? or self.beatless?)
 	end
 end
 

@@ -300,14 +300,28 @@ filesToCopy.shuffle.each_with_index do |f, i|
 			FileUtils.rm trgFile # cleanup _is_required_ else next FileUtils.cp can get troubles with this partially copied file permissions
 			wrn 'NO SPACE LEFT, will try to delete some old file'
 			oldDeleted = false
-			$db.keys.sort do |a, b|
+			$db.keys.select do |ff|
+				$db[ff][:inPlayer] and ! added.include? ff
+			end.sort do |a, b|
+				ab = -1; ba = 1;
+				# which file should be deleted first/later:
+				# best - later
+				a.best? and !b.best? and next ba
+				!a.best? and b.best? and next ab
+				# nonexistent - later (i.e. it was probably added from another machine so on this machine I probably prefer to keep it in player)
+				a.exists? and !b.exists? and next ab
+				!a.exists? and b.exists? and next ba
+				# if file in filesToCopy - later (i.e. it was not added yet but can be processed later, so it looks logically to wait to delete it)
+				filesToCopy.include?(a) and !filesToCopy.include?(b) and next ba
+				!filesToCopy.include?(a) and filesToCopy.include?(b) and next ab
+				# by date
+				next File.mtime(a) <=> File.mtime(b)
+				# finally just usual sort
 				a <=> b
 			end.each do |ff|
-				if $db[ff][:inPlayer] and ! added.include? ff
-					rmInPlayer ff
-					oldDeleted = true
-					break
-				end
+				rmInPlayer ff
+				oldDeleted = true
+				break
 			end
 			next if oldDeleted
 			wrn 'no old files left, can not free space any more, stop copy loop'
