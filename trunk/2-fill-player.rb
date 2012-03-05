@@ -300,7 +300,9 @@ filesToCopy.shuffle.each_with_index do |f, i|
 			FileUtils.rm trgFile # cleanup _is_required_ else next FileUtils.cp can get troubles with this partially copied file permissions
 			wrn 'NO SPACE LEFT, will try to delete some old file'
 			oldDeleted = false
-			$db.keys.each do |ff|
+			$db.keys.sort do |a, b|
+				a <=> b
+			end.each do |ff|
 				if $db[ff][:inPlayer] and ! added.include? ff
 					rmInPlayer ff
 					oldDeleted = true
