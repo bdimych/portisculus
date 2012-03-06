@@ -9,7 +9,6 @@ $playerDir = '/cygdrive/e'
 rangeNeeded = 150..180      # нужный диапазон bpm
 rangeAllowed = [0.95, 1.15] # максимальный коефициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
 bestOnly = false            # только лучшие песни
-groupBy = nil
 grep = nil
 maxNum = nil
 
@@ -33,12 +32,11 @@ def usage errorMsg = nil
 	puts <<e
 
 possible options:
+   -dbf /bpm/database/file.txt
    -pd /player/directory
    -r N-N   - needed bpm range
    -n N     - maximum number of files to copy
    -b       - copy only best songs
-   -gd      - group target files by source directories
-   -gb      - group by bpm
    remaining argument will be used as regular expression and only matched files will be copied
 e
 	exit errorMsg ? 1 : 0
@@ -51,17 +49,14 @@ end
 usage if ARGV.include? '--help'
 while ! ARGV.empty?
 	case a = ARGV.shift
+		when /-dbf/
+			$dbFile = ARGV.shift
 		when /-n(.*)/
 			maxNum = $1.empty? ? ARGV.shift : $1
 			usage '-n should be a number' if maxNum !~ /^\d+$/
 			maxNum = maxNum.to_i
 		when '-b'
 			bestOnly = true
-		when '-gd', '-gb'
-			if groupBy
-				usage '-gd and -gb are mutually exclusive'
-			end
-			groupBy = a == '-gd' ? :dir : :bpm
 		when /-r(.*)/
 			val = $1.empty? ? ARGV.shift : $1
 			if val =~ /^(\d+)-(\d+)$/
@@ -78,9 +73,12 @@ while ! ARGV.empty?
 			grep = a
 	end
 end
+usage '-dbf must be specified' if ! $dbFile
 $playerDir = File::expand_path $playerDir
 usage "player directory #$playerDir does not exist" if ! File.directory? $playerDir
 log 'parsing done'
+
+readDb
 
 puts
 filesToCopy = $db.keys.sort.select do |path|
@@ -100,13 +98,6 @@ player directory:        #$playerDir (#{playerFreeSpace})
 needed bpm range:        #{rangeNeeded.min}-#{rangeNeeded.max}
 num of files to copy:    #{maxNum ? maxNum : 'all'} of #{filesToCopy.size}
 only best songs:         #{bestOnly ? 'yes' : 'no'}
-group target files by:   #{
-	case groupBy
-		when :dir then 'source directories'
-		when :bpm then 'target bpm'
-		else 'no group, random order'
-	end
-}
 regular expression:      #{grep ? grep : 'none'}
 e
 usage 'no files to process' if filesToCopy.empty?
@@ -350,8 +341,4 @@ puts $deleted.join "\n"
 puts 'added:'
 puts added.join "\n"
 
-
-
-
-# grouping
 

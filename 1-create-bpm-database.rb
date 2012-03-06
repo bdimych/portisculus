@@ -5,6 +5,18 @@ require 'lib.rb'
 
 
 
+$dbFile = ARGV.shift
+if ! $dbFile
+	puts "ERROR: usage: #$0 /bpm/database/file.txt"
+	exit 1
+end
+readDb
+
+
+
+
+
+
 at_exit {
 	alias realPuts puts
 	def puts *args
