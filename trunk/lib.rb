@@ -143,6 +143,58 @@ def playerFreeSpace
 	%x(df #$playerDir).split("\n")[1].split(/ +/)[3] + ' Kb free'
 end
 
+require 'fileutils'
+def readAlreadyInPlayer
+	$aipTxt = "#$playerDir/alreadyInPlayer.txt"
+	log "reading #$aipTxt"
+	knownNamesInPlayer = []
+	if File.file? $aipTxt
+		File.open($aipTxt).each do |line|
+			# 1234-160---Song name.mp3 < /orig/path
+			# |    |
+			# |    bpm in player
+			# prefix just for ordering
+			if line =~ /^(\d{4}-(\d{3})---.+) < (.+\S)$/
+				nameInPlayer = $1
+				bpmInPlayer = $2
+				origPath = $3
+				if $db[origPath] and File.file? "#$playerDir/#{nameInPlayer}"
+					$db[origPath][:inPlayer] = {
+						:name => nameInPlayer,
+						:bpm => bpmInPlayer
+					}
+					knownNamesInPlayer.push nameInPlayer
+				end
+			else
+				raise "could not parse line in the #$aipTxt: \"#{line}\""
+			end
+		end
+	end
+
+	log 'zeroing player directory'
+	(Dir.entries($playerDir) - %w[. .. alreadyInPlayer.txt] - knownNamesInPlayer).each do |name|
+		log "deleting unknown entry #$playerDir/#{name}"
+		FileUtils.rm_rf "#$playerDir/#{name}"
+	end
+
+	log "done, #{knownNamesInPlayer.size} files in player"
+end
+
+def saveAlreadyInPlayer
+	log "saving #$aipTxt"
+	lines = []
+	$db.each_pair do |f, hash|
+		lines.push "#{hash[:inPlayer][:name]} < #{f}" if hash[:inPlayer]
+	end
+	File.open $aipTxt, 'w' do |fh|
+		lines.sort.each do |l|
+			fh.puts l
+		end
+	end
+	log "saved, #{lines.size} lines"
+	return lines.size
+end
+
 
 
 
