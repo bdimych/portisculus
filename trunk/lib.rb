@@ -17,8 +17,6 @@ end
 
 
 
-$dbFile = '/home/bdimych/bdimych.txt/bpm-database.txt';
-
 $db = {}
 
 def dbStat
@@ -97,10 +95,8 @@ end
 
 
 require 'pathname'
-log 'reading db';
-if ! File.exists? $dbFile
-	raise "bpm database file #$dbFile does not exist"
-else
+def readDb
+	log 'reading db';
 	File.open($dbFile).each do |line|
 		line.gsub!(/^\s*|\s*$/, '')
 		next if line.empty?
@@ -118,14 +114,9 @@ else
 		dbSet path, :flag, flag
 		dbSet path, :bpm, bpm
 	end
+	log "db loaded: #{dbStat.inspect}"
+	$dbChanged = false
 end
-log "db loaded: #{dbStat.inspect}"
-$dbChanged = false
-
-
-
-
-
 
 def writeDb
 	log "going to write db to the #$dbFile"
