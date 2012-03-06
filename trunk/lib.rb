@@ -139,6 +139,17 @@ end
 
 
 
+def playerFreeSpace
+	%x(df #$playerDir).split("\n")[1].split(/ +/)[3] + ' Kb free'
+end
+
+
+
+
+
+
+
+
 
 def readChar prompt, possibleChars = nil
 	sttySettingsBck = %x(stty -g).chomp

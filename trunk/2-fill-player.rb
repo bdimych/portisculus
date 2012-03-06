@@ -5,7 +5,6 @@ require 'lib.rb'
 
 
 
-$playerDir = '/cygdrive/e'
 rangeNeeded = 150..180      # нужный диапазон bpm
 rangeAllowed = [0.95, 1.15] # максимальный коефициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
 bestOnly = false            # только лучшие песни
@@ -32,18 +31,14 @@ def usage errorMsg = nil
 	puts <<e
 
 possible options:
-   -dbf /bpm/database/file.txt
-   -pd /player/directory
+   -dbf /bpm/database/file.txt  (required)
+   -pd /player/directory        (required)
    -r N-N   - needed bpm range
    -n N     - maximum number of files to copy
    -b       - copy only best songs
    remaining argument will be used as regular expression and only matched files will be copied
 e
 	exit errorMsg ? 1 : 0
-end
-
-def playerFreeSpace
-	%x(df #$playerDir).split("\n")[1].split(/ +/)[3] + ' Kb free'
 end
 
 usage if ARGV.include? '--help'
@@ -74,8 +69,9 @@ while ! ARGV.empty?
 	end
 end
 usage '-dbf must be specified' if ! $dbFile
-$playerDir = File::expand_path $playerDir
-usage "player directory #$playerDir does not exist" if ! File.directory? $playerDir
+usage "-dbf \"#$dbFile\" does not exist" if ! File.file? $dbFile
+usage '-pd must be specified' if ! $playerDir
+usage "-pd \"#$playerDir\" does not exist" if ! File.directory? $playerDir
 log 'parsing done'
 
 readDb
