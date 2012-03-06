@@ -113,67 +113,7 @@ puts
 puts 'STARTING MAIN PROGRAM'
 puts
 
-
-
-
-# read/write alreadyInPlayer.txt
-
-$aipTxt = "#$playerDir/alreadyInPlayer.txt"
-log "reading #$aipTxt"
-knownNamesInPlayer = []
-if File.file? $aipTxt
-	File.open($aipTxt).each do |line|
-		# 1234-160---Song name.mp3 < /orig/path
-		# |    |
-		# |    bpm in player
-		# prefix just for ordering
-		if line =~ /^(\d{4}-(\d{3})---.+) < (.+\S)$/
-			nameInPlayer = $1
-			bpmInPlayer = $2
-			origPath = $3
-			if $db[origPath] and File.file? "#$playerDir/#{nameInPlayer}"
-				$db[origPath][:inPlayer] = {
-					:name => nameInPlayer,
-					:bpm => bpmInPlayer
-				}
-				knownNamesInPlayer.push nameInPlayer
-			end
-		else
-			raise "could not parse line in the #$aipTxt: \"#{line}\""
-		end
-	end
-end
-log "#{knownNamesInPlayer.size} files already in player"
-
-def saveAlreadyInPlayer
-	log "saving #$aipTxt"
-	lines = []
-	$db.each_pair do |f, hash|
-		lines.push "#{hash[:inPlayer][:name]} < #{f}" if hash[:inPlayer]
-	end
-	File.open $aipTxt, 'w' do |fh|
-		lines.sort.each do |l|
-			fh.puts l
-		end
-	end
-	log "saved, #{lines.size} lines"
-	$stat[:filesInPlayer] = lines.size
-end
-
-
-
-
-# zeroing player directory
-
-log 'zeroing player directory'
-require 'fileutils'
-(Dir.entries($playerDir) - %w[. .. alreadyInPlayer.txt] - knownNamesInPlayer).each do |name|
-	log "deleting unknown entry #$playerDir/#{name}"
-	FileUtils.rm_rf "#$playerDir/#{name}"
-end
-
-
-
+readAlreadyInPlayer
 
 # copy loop
 
@@ -192,7 +132,7 @@ def rmInPlayer f
 	log "rmInPlayer #{fInPlayer} (#{size/1024} Kb)"
 	FileUtils.rm fInPlayer
 	$db[f].delete :inPlayer
-	saveAlreadyInPlayer
+	$stat[:filesInPlayer] = saveAlreadyInPlayer
 	$deleted.push f
 	$stat[:sizeDeleted] += size
 end
@@ -274,12 +214,12 @@ filesToCopy.shuffle.each_with_index do |f, i|
 		log "copying (#{File.size(srcFile)/1024} Kb)"
 		begin
 			FileUtils.cp srcFile, trgFile, :verbose => true
-			log 'SUCCESS! :)'
+			log 'SUCCESS!'
 			$db[f][:inPlayer] = {
 				:name => File.basename(trgFile),
 				:bpm => newBpm
 			}
-			saveAlreadyInPlayer
+			$stat[:filesInPlayer] = saveAlreadyInPlayer
 			added.push f
 			$stat[:sizeAdded] += File.size srcFile
 			break
