@@ -149,7 +149,12 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	
 	# is there f already in player
 	if $db[f][:inPlayer]
-		log "already in player, bpm in player #{$db[f][:inPlayer][:bpm]}"
+		log 'already in player'
+		if f.beatless?
+			log 'beatless file, no need to copy'
+			next
+		end
+		log "bpm in player #{$db[f][:inPlayer][:bpm]}"
 		if rangeNeeded.include? $db[f][:inPlayer][:bpm].to_i
 			log 'appropriate, no need to copy, go next file'
 			next
@@ -158,29 +163,33 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	end
 	
 	# determine target bpm
-	origBpm = $db[f][:bpm].to_i
-	log "original bpm #{origBpm}"
-	if rangeNeeded.include? origBpm
-		log 'appropriate, will copy unchanged'
-		newBpm = origBpm
+	if f.beatless?
+		log 'beatless file, no need to check/calculate bpm, will copy unchanged'
 	else
-		log 'out of the needed range, will calculate new'
-		allowedMin = (origBpm * rangeAllowed[0]).to_i
-		allowedMax = (origBpm * rangeAllowed[1]).to_i
-		log "allowed range: #{allowedMin}-#{allowedMax}"
-		allowedBpmsArr = rangeNeeded.to_a & Range.new(allowedMin, allowedMax).to_a
-		if allowedBpmsArr.empty?
-			wrn 'allowed and needed ranges do not intersect, will list such unsuitable songs at exit'
-			unsuitable.push f
-			next
+		origBpm = $db[f][:bpm].to_i
+		log "original bpm #{origBpm}"
+		if rangeNeeded.include? origBpm
+			log 'appropriate, will copy unchanged'
+			newBpm = origBpm
 		else
-			log "allowed and needed intersection: #{allowedBpmsArr[0]}-#{allowedBpmsArr[-1]}"
-			newBpm = allowedBpmsArr.choice
+			log 'out of the needed range, will calculate new'
+			allowedMin = (origBpm * rangeAllowed[0]).to_i
+			allowedMax = (origBpm * rangeAllowed[1]).to_i
+			log "allowed range: #{allowedMin}-#{allowedMax}"
+			allowedBpmsArr = rangeNeeded.to_a & Range.new(allowedMin, allowedMax).to_a
+			if allowedBpmsArr.empty?
+				wrn 'allowed and needed ranges do not intersect, will list such unsuitable songs at exit'
+				unsuitable.push f
+				next
+			else
+				log "allowed and needed intersection: #{allowedBpmsArr[0]}-#{allowedBpmsArr[-1]}"
+				newBpm = allowedBpmsArr.choice
+			end
 		end
 	end
 	
 	# stretch if needed
-	if newBpm == origBpm
+	if f.beatless? or newBpm == origBpm
 		srcFile = f
 	else
 		percent = sprintf '%+.1f', newBpm.to_f*100/origBpm - 100
