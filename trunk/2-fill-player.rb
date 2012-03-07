@@ -40,8 +40,9 @@ possible options:
 e
 	exit errorMsg ? 1 : 0
 end
-
 usage if ARGV.include? '--help'
+
+require 'pathname'
 while ! ARGV.empty?
 	case a = ARGV.shift
 		when /-dbf/
@@ -63,7 +64,7 @@ while ! ARGV.empty?
 				usage 'range is specified incorrectly - should be "number-number"'
 			end
 		when '-pd'
-			$playerDir = ARGV.shift
+			$playerDir = Pathname.new(ARGV.shift).cleanpath.to_s
 		else
 			grep = a
 	end
