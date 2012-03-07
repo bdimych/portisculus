@@ -171,13 +171,27 @@ def readAlreadyInPlayer
 		end
 	end
 
-	log 'zeroing player directory'
-	(Dir.entries($playerDir) - %w[. .. alreadyInPlayer.txt] - knownNamesInPlayer).each do |name|
-		log "deleting unknown entry #$playerDir/#{name}"
-		FileUtils.rm_rf "#$playerDir/#{name}"
-	end
+	if ! (toBeDeleted = (Dir.entries($playerDir) - %w[. .. alreadyInPlayer.txt] - knownNamesInPlayer)).empty?
+		log 'syncing player directory and alreadyInPlayer.txt'
+		toBeDeleted.map! do |name| "#$playerDir/#{name}" end
 
-	log "done, #{knownNamesInPlayer.count} files in player"
+		puts '----- WARNING! -----'
+		IO.popen 'xargs -0 ls -ld --group-directories-first --color --file-type', 'w' do |pipe|
+			pipe.print toBeDeleted.join "\0"
+		end
+		raise 'error ls toBeDeleted' if $? != 0
+		puts '----- WARNING! -----'
+		exit if ?y != readChar('these files/directories are not listed in the alreadyInPlayer.txt and about to be deleted, is it ok (N, y)? ', [?n, ?y])
+
+		IO.popen 'xargs -0 rm -rfv', 'w' do |pipe|
+			pipe.print toBeDeleted.join "\0"
+		end
+		raise 'error rm toBeDeleted' if $? != 0
+
+		log 'syncing done'
+	end
+	
+	log "#{knownNamesInPlayer.count} files in player"
 end
 
 def saveAlreadyInPlayer
