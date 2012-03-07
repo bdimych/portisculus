@@ -211,7 +211,7 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	end
 	
 	# name in player
-	trgFile = "#$playerDir/0000-#{newBpm}---#{File.basename f}"
+	trgFile = "#$playerDir/0000-#{f.beatless? ? 'BLS' : newBpm}---#{File.basename f}"
 	log "target file #{trgFile}"
 	raise 'target file already exists' if File.file? trgFile # the probability is small, imho no need to do more code
 	
@@ -226,7 +226,7 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	while true
 		log "copying (#{File.size(srcFile)/1024} Kb)"
 		begin
-			FileUtils.cp srcFile, trgFile, :verbose => true
+			myCopyFile srcFile, trgFile
 			log 'SUCCESS!'
 			$db[f][:inPlayer] = {
 				:name => File.basename(trgFile),
