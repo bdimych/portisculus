@@ -84,15 +84,15 @@ filesToCopy = $db.keys.sort.select do |path|
 	ok
 end
 if grep or bestOnly
-	puts "----- regexp and/or -b was specified, #{filesToCopy.size} files matched -----"
+	puts "----- regexp and/or -b was specified, #{filesToCopy.count} files matched -----"
 	filesToCopy.map {|f| puts f}
-	puts "----- regexp and/or -b was specified, #{filesToCopy.size} files matched -----"
+	puts "----- regexp and/or -b was specified, #{filesToCopy.count} files matched -----"
 	puts
 end
 puts <<e
 player directory:        #$playerDir (#{playerFreeSpace})
 needed bpm range:        #{rangeNeeded.min}-#{rangeNeeded.max}
-num of files to copy:    #{maxNum ? maxNum : 'all'} of #{filesToCopy.size}
+num of files to copy:    #{maxNum ? maxNum : 'all'} of #{filesToCopy.count}
 only best songs:         #{bestOnly ? 'yes' : 'no'}
 regular expression:      #{grep ? grep : 'none'}
 e
@@ -118,14 +118,16 @@ readAlreadyInPlayer
 # copy loop
 
 log 'copy loop'
+
 unsuitable = []
-added = []
-$deleted = []
+added = {}
+$deleted = {}
 $stat = {
 	:sizeDeleted => 0,
 	:sizeAdded => 0,
 	:startedAt => Time.now
 }
+
 def rmInPlayer f
 	fInPlayer = "#$playerDir/#{$db[f][:inPlayer][:name]}"
 	size = File.size fInPlayer
@@ -133,16 +135,17 @@ def rmInPlayer f
 	FileUtils.rm fInPlayer
 	$db[f].delete :inPlayer
 	$stat[:filesInPlayer] = saveAlreadyInPlayer
-	$deleted.push f
+	$deleted[f] = size
 	$stat[:sizeDeleted] += size
 end
+
 filesToCopy.shuffle.each_with_index do |f, i|
-	if added.size == maxNum
+	if added.count == maxNum
 		log "number of copied files has reached the specified maximum #{maxNum}, exit copy loop"
 		break
 	end
 
-	log "doing file #{i+1} from #{filesToCopy.size}: #{f}"
+	log "doing file #{i+1} from #{filesToCopy.count}: #{f}"
 	
 	# is there f already in player
 	if $db[f][:inPlayer]
@@ -220,7 +223,7 @@ filesToCopy.shuffle.each_with_index do |f, i|
 				:bpm => newBpm
 			}
 			$stat[:filesInPlayer] = saveAlreadyInPlayer
-			added.push f
+			added[f] = File.size srcFile
 			$stat[:sizeAdded] += File.size srcFile
 			break
 		rescue Errno::ENOSPC
@@ -238,7 +241,7 @@ filesToCopy.shuffle.each_with_index do |f, i|
 				# nonexistent - later (i.e. it was probably added from another machine so on this machine I probably prefer to keep it in player)
 				a.exists? and !b.exists? and next ab
 				!a.exists? and b.exists? and next ba
-				# if file in filesToCopy - later (i.e. it was not added yet but can be processed later, so it looks logically to wait to delete it)
+				# if file in filesToCopy - later (i.e. now it was not added yet, but later can be, so it looks logically to wait to delete it)
 				filesToCopy.include?(a) and !filesToCopy.include?(b) and next ba
 				!filesToCopy.include?(a) and filesToCopy.include?(b) and next ab
 				# by date
@@ -262,9 +265,9 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	execTime = Time.now - $stat[:startedAt]
 	log "file done, copy loop statistics:
                time:    #{execTime.round} seconds
-               deleted: #{$deleted.size} files / #{$stat[:sizeDeleted]/1024/1024} Mb
-               added:   #{added.size} files / #{$stat[:sizeAdded]/1024/1024} Mb
-               speed:   #{sprintf '%.1f', added.size/execTime} files / #{sprintf '%.1f', $stat[:sizeAdded]/1024/1024/execTime} Mb per second
+               deleted: #{$deleted.count} files / #{$stat[:sizeDeleted]/1024/1024} Mb
+               added:   #{added.count} files / #{$stat[:sizeAdded]/1024/1024} Mb
+               speed:   #{sprintf '%.1f', added.count/execTime} files / #{sprintf '%.1f', $stat[:sizeAdded]/1024/1024/execTime} Mb per second
                player:  #{$stat[:filesInPlayer]} files, #{playerFreeSpace}
 "
 
@@ -272,9 +275,12 @@ filesToCopy.shuffle.each_with_index do |f, i|
 end
 
 log 'copy loop end'
-puts 'deleted:'
-puts $deleted.join "\n"
-puts 'added:'
-puts added.join "\n"
-
+puts "deleted #{$deleted.count}:"
+$deleted.each_pair do |f, size|
+	puts "#{f} (#{sprintf '%.1f', size.to_f/1024/1024} Mb)"
+end
+puts "added #{added.count}:"
+added.each_pair do |f, size|
+	puts "#{f} (#{sprintf '%.1f', size.to_f/1024/1024} Mb)"
+end
 

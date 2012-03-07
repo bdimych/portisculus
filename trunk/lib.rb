@@ -21,7 +21,7 @@ $db = {}
 
 def dbStat
 	dbStat = {
-		:totalPaths => $db.keys.size,
+		:totalPaths => $db.keys.count,
 		
 		:nonexistent => 0,
 		:dirs => 0,
@@ -177,7 +177,7 @@ def readAlreadyInPlayer
 		FileUtils.rm_rf "#$playerDir/#{name}"
 	end
 
-	log "done, #{knownNamesInPlayer.size} files in player"
+	log "done, #{knownNamesInPlayer.count} files in player"
 end
 
 def saveAlreadyInPlayer
@@ -191,8 +191,8 @@ def saveAlreadyInPlayer
 			fh.puts l
 		end
 	end
-	log "saved, #{lines.size} lines"
-	return lines.size
+	log "saved, #{lines.count} lines"
+	return lines.count
 end
 
 
