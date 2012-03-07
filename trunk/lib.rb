@@ -4,6 +4,8 @@ end
 
 
 
+STDOUT.sync = true
+
 def log msg
 	t = Time.now
 	puts "[#{t.strftime '%H:%M:%S'}.#{sprintf '%03u', t.usec/1000}] #{msg}"
@@ -162,7 +164,7 @@ def readAlreadyInPlayer
 			# |    |
 			# |    bpm in player
 			# prefix just for ordering
-			if line =~ /^(\d{4}-(\d{3})---.+) < (.+\S)$/
+			if line =~ /^(\d{4}-(\d{3}|BLS)---.+) < (.+\S)$/
 				nameInPlayer = $1
 				bpmInPlayer = $2
 				origPath = $3
@@ -218,6 +220,24 @@ def saveAlreadyInPlayer
 end
 
 
+
+
+
+
+
+def myCopyFile from, to
+	puts "myCopyFile \"#{from}\" \"#{to}\""
+	bytesCopied = 0
+	File.open from, 'rb' do |fromFh|
+		File.open to, 'wb' do |toFh|
+			toFh.sync = true
+			while buf = fromFh.read(1024*1024)
+				puts "#{bytesCopied += toFh.write buf} bytes copied"
+			end
+		end
+	end
+	puts 'myCopyFile done'
+end
 
 
 
