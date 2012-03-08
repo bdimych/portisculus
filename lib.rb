@@ -1,9 +1,3 @@
-if `soundstretch 2>&1` !~ /SoundStretch.*Written by Olli Parviainen/
-	raise 'could not find soundstretch'
-end
-
-
-
 STDOUT.sync = true
 
 def log msg
@@ -14,6 +8,16 @@ end
 def wrn msg
 	log "WARNING: #{msg}"
 end
+
+
+
+
+
+if %x(soundstretch 2>&1) !~ /SoundStretch.*Written by Olli Parviainen/
+	raise 'could not run soundstretch'
+end
+
+raise 'could not run mplayer' if ! system('mplayer >/dev/null')
 
 
 
@@ -263,6 +267,39 @@ end
 
 def askYesNo prompt
 	?n != readChar("#{prompt} (Y, n)? ", [?y, ?n])
+end
+
+
+
+
+
+def checkSongLength file, tooLongHash
+	log "checkSongLength"
+	if RUBY_PLATFORM =~ /cygwin/
+		IO.popen 'cygpath -wf-', 'rb+' do |pipe|
+			pipe.puts file
+			file = pipe.gets.chomp
+		end
+		raise 'cygpath failed' if $? != 0
+	end
+	length = nil
+	# mplayer options taken from midentify
+	IO.popen 'xargs -0 mplayer -noconfig all -cache-min 0 -vo null -ao null -frames 0 -identify', 'rb+' do |pipe|
+		pipe.print file
+		pipe.close_write
+		while pipe.gets
+			length = $1.to_i if $_.chomp =~ /^ID_LENGTH=(\d+\.\d+)$/
+		end
+	end
+	raise 'getSongLength failed' if ! length
+	msg = "#{length} sec (#{length/60} min)"
+	if length > 6*60
+		tooLongHash[file] = length
+		wrn "#{msg} - TOO LONG!, should be skipped, tooLongHash appended"
+		return nil
+	end
+	log "#{msg} - ok"
+	return true
 end
 
 

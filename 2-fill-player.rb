@@ -120,7 +120,8 @@ readAlreadyInPlayer
 
 log 'copy loop'
 
-unsuitable = []
+tooLong = {}
+unsuitable = {}
 added = {}
 $deleted = {}
 $stat = {
@@ -147,6 +148,8 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	end
 
 	log "doing file #{i+1} from #{filesToCopy.count}: #{f}"
+
+	next if ! checkSongLength f, tooLong
 	
 	# is there f already in player
 	if $db[f][:inPlayer]
@@ -180,7 +183,7 @@ filesToCopy.shuffle.each_with_index do |f, i|
 			allowedBpmsArr = rangeNeeded.to_a & Range.new(allowedMin, allowedMax).to_a
 			if allowedBpmsArr.empty?
 				wrn 'allowed and needed ranges do not intersect, will list such unsuitable songs at exit'
-				unsuitable.push f
+				unsuitable[f] = [origBpm, allowedMin, allowedMax]
 				next
 			else
 				log "allowed and needed intersection: #{allowedBpmsArr[0]}-#{allowedBpmsArr[-1]}"
