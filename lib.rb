@@ -108,8 +108,9 @@ def readDb
 		next if line.empty?
 		
 		flag = line.slice!(/^\s*([+\-=])\s*/) ? $1 : nil
-		path, bpm = line.split(/\s*:(?!\\)\s*/) # (?!\\) is needed for do not split dos paths C:\...
-		path.gsub! /^"|"$/, ''
+		trailingSlash = line.slice! /\/$/ # in order to correctly writeDb directory paths form another computer and nonexistent on this one
+		path, bpm = line.split(/\s*:(?!\\)\s*/) # negative lookahead (?!\\) is needed for do not split dos paths C:\...
+		path.gsub! /^"|"$/, '' # e.g. in Total Commander Ctrl-Shift-Enter or in Far Alt-Shift-Insert allows to copy full path doublequoted
 		if path =~ /\\/ and RUBY_PLATFORM =~ /cygwin/
 			log "dos path found #{path}"
 			log "cygpath result: #{path = %x(cygpath "#{path}").chomp}"
@@ -119,20 +120,30 @@ def readDb
 		
 		dbSet path, :flag, flag
 		dbSet path, :bpm, bpm
+		dbSet path, :trailingSlash, trailingSlash if trailingSlash
+		
+		log $db.count if $db.count % 1000 == 0
 	end
 	log "db loaded: #{dbStat.inspect}"
 	$dbChanged = false
 end
 
 def writeDb
-	log "going to write db to the #$dbFile"
+	log 'going to write db'
 	if ! $dbChanged
-		log "db was not changed: #{dbStat.inspect}, skip writing"
+		log "skip writing, db was not changed: #{dbStat.inspect}"
 		return
 	end
 	File.open $dbFile, 'w' do |fh|
+		cnt = 0
 		$db.keys.sort.each do |path|
-			fh.puts( ($db[path][:flag] ? "#{$db[path][:flag]} " : '') + path + (File.directory?(path) ? '/' : ": #{$db[path][:bpm]}") )
+			x = $db[path]
+			fh.puts(
+				(x[:flag] ? "#{x[:flag]} " : '') +
+					path +
+				(x[:dir] || x[:trailingSlash] ? '/' : ": #{x[:bpm]}")
+			)
+			log cnt if ( (cnt += 1) % 1000 == 0 )
 		end
 	end
 	$dbChanged = false
