@@ -130,13 +130,47 @@ $stat = {
 	:startedAt => Time.now
 }
 
+at_exit {
+	puts
+	puts
+	puts
+	log '------------------------------------------------------------ at_exit ------------------------------------------------------------'
+	saveAlreadyInPlayer
+	puts
+
+	puts "deleted #{$deleted.count}:"
+	$deleted.each_pair do |f, size|
+		puts "#{f}: #{sprintf '%.1f', size.to_f/1024/1024} Mb"
+	end
+	puts
+
+	puts "added #{added.count}:"
+	added.each_pair do |f, size|
+		puts "#{f}: #{sprintf '%.1f', size.to_f/1024/1024} Mb"
+	end
+	puts
+
+	puts "tooLong #{tooLong.count}:"
+	tooLong.each_pair do |f, secs|
+		puts "#{f}: #{secs} sec (#{secs/60} min #{secs%60} sec)"
+	end
+	puts
+	
+	puts "unsuitable #{unsuitable.count}:"
+	unsuitable.each_pair do |f, arr|
+		puts "#{f}: #{arr.inspect}"
+	end
+
+	puts
+	log "------------------------------------------------------------ at_exit ------------------------------------------------------------\n\n\n"
+}
+
 def rmInPlayer f
 	fInPlayer = "#$playerDir/#{$db[f][:inPlayer][:name]}"
 	size = File.size fInPlayer
 	log "rmInPlayer #{fInPlayer} (#{size/1024} Kb)"
 	FileUtils.rm fInPlayer
 	$db[f].delete :inPlayer
-	$stat[:filesInPlayer] = saveAlreadyInPlayer
 	$deleted[f] = size
 	$stat[:sizeDeleted] += size
 end
@@ -235,7 +269,6 @@ filesToCopy.shuffle.each_with_index do |f, i|
 				:name => File.basename(trgFile),
 				:bpm => newBpm
 			}
-			$stat[:filesInPlayer] = saveAlreadyInPlayer
 			added[f] = File.size srcFile
 			$stat[:sizeAdded] += File.size srcFile
 			break
@@ -281,19 +314,9 @@ filesToCopy.shuffle.each_with_index do |f, i|
                deleted: #{$deleted.count} files / #{$stat[:sizeDeleted]/1024/1024} Mb
                added:   #{added.count} files / #{$stat[:sizeAdded]/1024/1024} Mb
                speed:   #{sprintf '%.1f', added.count/execTime} files / #{sprintf '%.1f', $stat[:sizeAdded]/1024/1024/execTime} Mb per second
-               player:  #{$stat[:filesInPlayer]} files, #{playerFreeSpace}
+               player:  #{$db.values.count {|hash| hash[:inPlayer]}} files, #{playerFreeSpace}
 "
 
 	break if noSpace
-end
-
-log 'copy loop end'
-puts "deleted #{$deleted.count}:"
-$deleted.each_pair do |f, size|
-	puts "#{f} (#{sprintf '%.1f', size.to_f/1024/1024} Mb)"
-end
-puts "added #{added.count}:"
-added.each_pair do |f, size|
-	puts "#{f} (#{sprintf '%.1f', size.to_f/1024/1024} Mb)"
 end
 

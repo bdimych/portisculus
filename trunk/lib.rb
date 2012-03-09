@@ -231,7 +231,6 @@ def saveAlreadyInPlayer
 		end
 	end
 	log "saved, #{lines.count} lines"
-	return lines.count
 end
 
 
@@ -304,7 +303,7 @@ def checkSongLength file, tooLongHash
 	end
 	raise 'getSongLength failed' if ! length
 	msg = "#{length} sec (#{length/60} min)"
-	if length > 6*60
+	if length > 7*60
 		tooLongHash[file] = length
 		wrn "#{msg} - TOO LONG!, should be skipped, tooLongHash appended"
 		return nil
