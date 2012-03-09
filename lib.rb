@@ -283,28 +283,16 @@ end
 
 
 
+def sec_min_sec sec
+	"#{sec} sec (#{sec/60} min #{sec%60} sec)"
+end
+
+require 'mp3info'
 def checkSongLength file, tooLongHash
-	log "checkSongLength"
-	if RUBY_PLATFORM =~ /cygwin/
-		IO.popen 'cygpath -wf-', 'rb+' do |pipe|
-			pipe.puts file
-			file = pipe.gets.chomp
-		end
-		raise 'cygpath failed' if $? != 0
-	end
-	length = nil
-	# mplayer options taken from midentify
-	IO.popen 'xargs -0 mplayer -noconfig all -cache-min 0 -vo null -ao null -frames 0 -identify', 'rb+' do |pipe|
-		pipe.print file
-		pipe.close_write
-		while pipe.gets
-			length = $1.to_i if $_.chomp =~ /^ID_LENGTH=(\d+\.\d+)$/
-		end
-	end
-	raise 'getSongLength failed' if ! length
-	msg = "#{length} sec (#{length/60} min)"
-	if length > 7*60
-		tooLongHash[file] = length
+	log 'checkSongLength'
+	msg = sec_min_sec(l = Mp3Info.new(file).length.round)
+	if l > 7*60
+		tooLongHash[file] = l
 		wrn "#{msg} - TOO LONG!, should be skipped, tooLongHash appended"
 		return nil
 	end
