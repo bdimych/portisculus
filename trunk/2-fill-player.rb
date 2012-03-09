@@ -152,7 +152,7 @@ at_exit {
 
 	puts "tooLong #{tooLong.count}:"
 	tooLong.each_pair do |f, secs|
-		puts "#{f}: #{secs} sec (#{secs/60} min #{secs%60} sec)"
+		puts "#{f}: #{sec_min_sec secs}"
 	end
 	puts
 	
