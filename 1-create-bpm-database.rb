@@ -48,7 +48,7 @@ $db.keys.sort.each do |dir|
 	end
 end
 $db.keys.sort.each do |f|
-	next if !f.exists? or f.dir? or f.skipped? or f.beatless? or f.bpmOk? or $db[f][:bpm] == 'soundstretchFailed'
+	next if !f.exists? or f.dir? or f.skipped? or f.beatless? or f.bpmOk? or $db[f][:bpm] =~ /soundstretchFailed|byhands/
 	log "doing file #{f}"
 	
 	FileUtils.copy_entry f, './tmp.mp3', false, false, true
