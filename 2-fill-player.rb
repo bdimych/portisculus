@@ -130,6 +130,13 @@ $stat = {
 	:startedAt => Time.now
 }
 
+wasCtrlC = nil
+trap('INT') {
+	puts "\n\n\n"
+	log "- - - - - - - - - - - - - - - - - - - - - - - - - !!! Ctrl-C caught !!! - will stop when the current file will be done\n\n\n"
+	wasCtrlC = true
+}
+
 at_exit {
 	puts
 	puts
@@ -236,13 +243,13 @@ filesToCopy.shuffle.each_with_index do |f, i|
 		FileUtils.copy_entry f, './tmp.mp3', false, false, true
 		
 		log (cmd = %w(lame --decode tmp.mp3 tmp-decoded.wav)).join ' '
-		raise 'error decoding mp3' if ! system *cmd
+		raise 'error decoding mp3' if ! mySystem *cmd
 		
 		log (cmd = %W(soundstretch tmp-decoded.wav tmp-stretched.wav -tempo=#{percent})).join ' '
-		raise 'soundstretch failed' if ! system *cmd
+		raise 'soundstretch failed' if ! mySystem *cmd
 		
 		log (cmd = %w(lame --nohist --preset medium tmp-stretched.wav tmp-result.mp3)).join ' '
-		raise 'error encoding mp3' if ! system *cmd
+		raise 'error encoding mp3' if ! mySystem *cmd
 		
 		srcFile = 'tmp-result.mp3'
 	end
@@ -318,5 +325,10 @@ filesToCopy.shuffle.each_with_index do |f, i|
 "
 
 	break if noSpace
+	
+	if wasCtrlC
+		log 'exit cause of Ctrl-C was caught'
+		exit
+	end
 end
 
