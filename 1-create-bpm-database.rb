@@ -41,37 +41,36 @@ require 'fileutils'
 log 'first pass'
 $db.keys.sort.each do |dir|
 	next if ! File.directory? dir
-	log "doing directory #{dir}"
-	
+	log "scanning directory #{dir}"
 	Find.find dir do |f|
 		next if ! File.file? f or f !~ /\.mp3$/i
-		log "doing file #{f}"
-		if $db[f]
-			log 'file is already in database'
-			next
-		end
-		
-		FileUtils.copy_entry f, './tmp.mp3', false, false, true
-		
-		cmd = %w(lame --decode tmp.mp3 tmp-decoded.wav)
-		log cmd.join ' '
-		if ! system *cmd
-			raise 'error decoding mp3'
-		end
-
-		bpm = ''
-		cmd = 'soundstretch tmp-decoded.wav -bpm 2>&1'
-		log cmd
-		IO.popen cmd do |pipe|
-			pipe.each_line do |line|
-				puts line
-				bpm = $1.to_f.round if line =~ /^Detected BPM rate (\d+\.\d)\s*$/
-			end
-		end
-
-		dbSet f, :bpm, bpm
-		log "file done: bpm result: \"#{bpm}\", dbStat: #{dbStat.inspect}"
+		dbAdd f
 	end
+end
+$db.keys.sort.each do |f|
+	next if !f.exists? or f.dir? or f.skipped? or f.beatless? or f.bpmOk? or $db[f][:bpm] == 'soundstretchFailed'
+	log "doing file #{f}"
+	
+	FileUtils.copy_entry f, './tmp.mp3', false, false, true
+	
+	cmd = %w(lame --decode tmp.mp3 tmp-decoded.wav)
+	log cmd.join ' '
+	if ! system *cmd
+		raise 'error decoding mp3'
+	end
+
+	bpm = 'soundstretchFailed'
+	cmd = 'soundstretch tmp-decoded.wav -bpm 2>&1'
+	log cmd
+	IO.popen cmd do |pipe|
+		pipe.each_line do |line|
+			puts line
+			bpm = $1.to_f.round if line =~ /^Detected BPM rate (\d+\.\d)\s*$/
+		end
+	end
+
+	dbSet f, :bpm, bpm
+	log "file done: bpm result: \"#{bpm}\", dbStat: #{dbStat.inspect}"
 end
 writeDb
 

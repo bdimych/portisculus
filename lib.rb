@@ -59,12 +59,16 @@ def dbStat
 	dbStat
 end
 
-def dbSet path, key, value
+def dbAdd path
 	if ! $db[path]
 		$db[path] = {}
 		$db[path][:nonexistent] = true if ! File.exists? path
 		$db[path][:dir] = true if File.directory? path
 	end
+end
+
+def dbSet path, key, value
+	dbAdd path
 	$db[path][key] = value
 	$dbChanged = true
 end
@@ -75,6 +79,9 @@ class String
 	end
 	def exists?
 		! $db[self][:nonexistent]
+	end
+	def dir?
+		$db[self][:dir]
 	end
 	
 	def best?
@@ -88,10 +95,10 @@ class String
 	end
 	
 	def withoutBpm?
-		self.exists? and ! $db[self][:dir] and ! self.skipped? and ! self.beatless? and ! self.bpmOk?
+		self.exists? and !self.dir? and !self.skipped? and !self.beatless? and !self.bpmOk?
 	end
 	def canBeCopied?
-		self.exists? and ! $db[self][:dir] and ! self.skipped? and (self.bpmOk? or self.beatless?)
+		self.exists? and !self.dir? and !self.skipped? and (self.bpmOk? or self.beatless?)
 	end
 end
 
