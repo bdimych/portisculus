@@ -116,10 +116,6 @@ puts
 
 readAlreadyInPlayer
 
-# copy loop
-
-log 'copy loop'
-
 tooLong = {}
 unsuitable = {}
 added = {}
@@ -130,15 +126,20 @@ $stat = {
 	:startedAt => Time.now
 }
 
-wasCtrlC = nil
+$wasCtrlC = nil
 trap('INT') {
 	puts "\n\n\n"
-	log "- - - - - - - - - - - - - - - - - - - - - - - - - !!! Ctrl-C caught !!! - will stop when the current file will be done\n\n\n"
-	wasCtrlC = true
+	log "- - - - - - - - - - - - - - - - - - - - - - - - - !!! Ctrl-C caught !!! - will stop at the nearest appropriate moment\n\n\n"
+	$wasCtrlC = true
 }
+def exitIfWasCtrlC
+	if $wasCtrlC
+		log 'exit cause of Ctrl-C was caught'
+		exit
+	end
+end
 
 at_exit {
-	puts
 	puts
 	puts
 	log '------------------------------------------------------------ at_exit ------------------------------------------------------------'
@@ -182,6 +183,16 @@ def rmInPlayer f
 	$stat[:sizeDeleted] += size
 end
 
+log 'delete from player songs become skipped' # e.g. I listened -> some songs didn't like -> in db marked them as skipped -> now they should be deleted
+$db.keys.each do |f|
+	if $db[f][:inPlayer] and f.skipped?
+		rmInPlayer f
+	end
+	exitIfWasCtrlC
+end
+log "#{$deleted.count} skipped were deleted"
+
+log 'copy loop'
 filesToCopy.shuffle.each_with_index do |f, i|
 	if added.count == maxNum
 		log "number of copied files has reached the specified maximum #{maxNum}, exit copy loop"
@@ -326,9 +337,6 @@ filesToCopy.shuffle.each_with_index do |f, i|
 
 	break if noSpace
 	
-	if wasCtrlC
-		log 'exit cause of Ctrl-C was caught'
-		exit
-	end
+	exitIfWasCtrlC
 end
 
