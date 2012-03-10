@@ -305,3 +305,19 @@ end
 
 
 
+
+def mySystem *args
+# two purposes:
+# 1. to allow trap INT in the main process when the child is running (ruby's own "system" does not allow this (ruby 1.8.7 cygwin))
+# 2. to ignore INT in the child so that the main could wait and exit at the proper moment (e.g. in 2-fill in copy loop it is when one file is done)
+	if ! fork
+		trap 'INT', 'IGNORE'
+		exec *args
+	end
+	while ! Process.wait -1, Process::WNOHANG
+		sleep 0.1
+	end
+	$? == 0 ? true : nil
+end
+
+
