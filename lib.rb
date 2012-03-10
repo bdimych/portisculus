@@ -172,8 +172,11 @@ require 'fileutils'
 def readAlreadyInPlayer
 	$aipTxt = "#$playerDir/alreadyInPlayer.txt"
 	log "reading #$aipTxt"
+	
+	pdEntries = Dir.entries $playerDir
+	
 	knownNamesInPlayer = []
-	if File.file? $aipTxt
+	if pdEntries.include? 'alreadyInPlayer.txt'
 		File.open($aipTxt).each do |line|
 			# 1234-160---Song name.mp3 < /orig/path
 			# |    |
@@ -183,7 +186,7 @@ def readAlreadyInPlayer
 				nameInPlayer = $1
 				bpmInPlayer = $2
 				origPath = $3
-				if $db[origPath] and File.file? "#$playerDir/#{nameInPlayer}"
+				if $db[origPath] and pdEntries.include? nameInPlayer
 					$db[origPath][:inPlayer] = {
 						:name => nameInPlayer,
 						:bpm => bpmInPlayer
@@ -196,7 +199,7 @@ def readAlreadyInPlayer
 		end
 	end
 
-	if ! (toBeDeleted = (Dir.entries($playerDir) - %w[. .. alreadyInPlayer.txt] - knownNamesInPlayer)).empty?
+	if ! (toBeDeleted = (pdEntries - %w[. .. alreadyInPlayer.txt] - knownNamesInPlayer)).empty?
 		log 'syncing player directory and alreadyInPlayer.txt'
 		toBeDeleted.map! do |name| "#$playerDir/#{name}" end
 
