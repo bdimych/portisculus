@@ -270,6 +270,7 @@ end
 
 
 def readChar prompt, possibleChars = nil
+	intTrap = trap 'INT', 'DEFAULT'
 	sttySettingsBck = %x(stty -g).chomp
 	begin
 		system *%w(stty raw isig opost -echo)
@@ -282,6 +283,7 @@ def readChar prompt, possibleChars = nil
 		end
 	ensure
 		system 'stty', sttySettingsBck
+		trap 'INT', intTrap
 	end
 end
 

@@ -183,14 +183,35 @@ def rmInPlayer f
 	$stat[:sizeDeleted] += size
 end
 
-log 'delete from player songs become skipped' # e.g. I listened -> some songs didn't like -> in db marked them as skipped -> now they should be deleted
+toBeDeleted = {}
 $db.keys.each do |f|
-	if $db[f][:inPlayer] and f.skipped?
-		rmInPlayer f
+	if $db[f][:inPlayer]
+		if f.skipped?
+			toBeDeleted[f] = 'skipped'
+		elsif $db[f][:inPlayer][:bpm]!='BLS' and !rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
+			toBeDeleted[f] = 'out of range'
+		end
 	end
-	exitIfWasCtrlC
 end
-log "#{$deleted.count} skipped were deleted"
+if ! toBeDeleted.empty?
+	wrn 'these files are about to be deleted from player cause of become skipped or out of range:'
+	puts '---'
+	toBeDeleted.each_pair do |f, reason|
+		printf "%-15s%s\n", reason, $db[f][:inPlayer][:name]
+	end
+	puts '---'
+	wrn 'these files are about to be deleted from player cause of become skipped or out of range'
+	case readChar '(d)elete, do (n)ot delete, (E)xit ? ', [?e, ?d, ?n]
+		when ?e
+			exit
+		when ?d
+			toBeDeleted.each_key do |f|
+				rmInPlayer f
+				exitIfWasCtrlC
+			end
+			log "#{$deleted.count} were deleted"
+	end
+end
 
 log 'copy loop'
 filesToCopy.shuffle.each_with_index do |f, i|
@@ -200,23 +221,13 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	end
 
 	log "doing file #{i+1} from #{filesToCopy.count}: #{f}"
-
-	next if ! checkSongLength f, tooLong
 	
-	# is there f already in player
 	if $db[f][:inPlayer]
 		log 'already in player'
-		if f.beatless?
-			log 'beatless file, no need to do something'
-			next
-		end
-		log "bpm in player #{$db[f][:inPlayer][:bpm]}"
-		if rangeNeeded.include? $db[f][:inPlayer][:bpm].to_i
-			log 'appropriate, no need to copy, go next file'
-			next
-		end
-		log 'out of the needed range, doing further'
+		next
 	end
+	
+	next if ! checkSongLength f, tooLong
 	
 	# determine target bpm
 	if f.beatless?
@@ -273,10 +284,6 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	
 	
 	# copy file
-	if $db[f][:inPlayer]
-		log 'deleting old file'
-		rmInPlayer f
-	end
 	noSpace = false
 	while true
 		log "copying (#{File.size(srcFile)/1024} Kb)"
