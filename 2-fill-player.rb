@@ -207,7 +207,7 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	if $db[f][:inPlayer]
 		log 'already in player'
 		if f.beatless?
-			log 'beatless file, no need to copy'
+			log 'beatless file, no need to do something'
 			next
 		end
 		log "bpm in player #{$db[f][:inPlayer][:bpm]}"
@@ -238,7 +238,7 @@ filesToCopy.shuffle.each_with_index do |f, i|
 				unsuitable[f] = [origBpm, allowedMin, allowedMax]
 				next
 			else
-				log "allowed and needed intersection: #{allowedBpmsArr[0]}-#{allowedBpmsArr[-1]}"
+				log "intersection: #{allowedBpmsArr[0]}-#{allowedBpmsArr[-1]}"
 				newBpm = allowedBpmsArr.choice
 			end
 		end
