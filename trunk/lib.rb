@@ -145,11 +145,7 @@ def writeDb
 		cnt = 0
 		$db.keys.sort.each do |path|
 			x = $db[path]
-			fh.puts(
-				(x[:flag] ? "#{x[:flag]} " : '') +
-					path +
-				(x[:dir] || x[:trailingSlash] ? '/' : ": #{x[:bpm]}")
-			)
+			fh.puts sprintf('%-2s', x[:flag]) + path + (x[:dir] || x[:trailingSlash] ? '/' : ": #{x[:bpm]}")
 			log cnt if ( (cnt += 1) % 1000 == 0 )
 		end
 	end
