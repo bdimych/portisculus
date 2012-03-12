@@ -158,26 +158,26 @@ at_exit {
 	puts
 
 	puts "deleted #{$deleted.count}:"
-	$deleted.each_pair do |f, size|
-		puts "#{f}: #{sprintf '%.1f', size.to_f/1024/1024} Mb"
+	$deleted.keys.sort.each do |f|
+		puts "#{f}: #{sprintf '%.1f', $deleted[f].to_f/1024/1024} Mb"
 	end
 	puts
 
 	puts "added #{added.count}:"
-	added.each_pair do |f, size|
-		puts "#{f}: #{sprintf '%.1f', size.to_f/1024/1024} Mb"
+	added.keys.sort.each do |f|
+		puts "#{f}: #{sprintf '%.1f', added[f].to_f/1024/1024} Mb"
 	end
 	puts
 
 	puts "tooLong #{tooLong.count}:"
-	tooLong.each_pair do |f, secs|
-		puts "#{f}: #{sec_min_sec secs}"
+	tooLong.keys.sort.each do |f|
+		puts "#{f}: #{sec_min_sec tooLong[f]}"
 	end
 	puts
 	
 	puts "unsuitable #{unsuitable.count}:"
-	unsuitable.each_pair do |f, arr|
-		puts "#{f}: #{arr.inspect}"
+	unsuitable.keys.sort.each do |f|
+		puts "#{f}: #{unsuitable[f].inspect}"
 	end
 
 	puts
