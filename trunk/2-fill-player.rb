@@ -154,7 +154,11 @@ at_exit {
 	puts
 	puts
 	log "------------------------------------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------------------------------------"
-	saveAlreadyInPlayer
+	if $deleted.empty? and added.empty?
+		log 'no files were deleted or added, no need to saveAlreadyInPlayer'
+	else
+		saveAlreadyInPlayer
+	end
 	puts
 
 	puts "deleted #{$deleted.count}:"
