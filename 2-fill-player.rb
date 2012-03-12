@@ -140,9 +140,20 @@ def exitIfWasCtrlC
 end
 
 at_exit {
+	err = nil
+	# http://stackoverflow.com/questions/1144066/ruby-at-exit-exit-status
+	if $!.nil? || $!.is_a?(SystemExit) && $!.success?
+	else
+		if $!.is_a?(SystemExit)
+			err = "nonzero SystemExit: #{$!.status}"
+		else
+			err = 'probably exception - see below this block'
+		end
+	end
+
 	puts
 	puts
-	log '------------------------------------------------------------ at_exit ------------------------------------------------------------'
+	log "------------------------------------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------------------------------------"
 	saveAlreadyInPlayer
 	puts
 
@@ -170,7 +181,7 @@ at_exit {
 	end
 
 	puts
-	log "------------------------------------------------------------ at_exit ------------------------------------------------------------\n\n\n"
+	log "------------------------------------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------------------------------------\n\n\n"
 }
 
 def rmInPlayer f
