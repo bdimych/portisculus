@@ -238,7 +238,7 @@ filesToCopy.shuffle.each_with_index do |f, i|
 		next
 	end
 	
-	next if ! checkSongLength f, tooLong
+	next if ! f.best? and ! checkSongLength f, tooLong
 	
 	# determine target bpm
 	if f.beatless?
