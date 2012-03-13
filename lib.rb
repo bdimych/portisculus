@@ -179,6 +179,7 @@ def readAlreadyInPlayer
 	pdEntries = Dir.entries $playerDir
 	
 	knownNamesInPlayer = []
+	notInDb = {}
 	if pdEntries.include? 'alreadyInPlayer.txt'
 		File.open($aipTxt).each do |line|
 			# 1234-160---Song name.mp3 < /orig/path
@@ -195,34 +196,55 @@ def readAlreadyInPlayer
 						:bpm => bpmInPlayer
 					}
 					knownNamesInPlayer.push nameInPlayer
+				elsif !$db[origPath]
+					notInDb[nameInPlayer] = origPath
 				end
 			else
 				raise "could not parse line in the #$aipTxt: \"#{line}\""
 			end
 		end
 	end
-
-	if ! (toBeDeleted = (pdEntries - %w[. .. alreadyInPlayer.txt] - knownNamesInPlayer)).empty?
-		log 'syncing player directory and alreadyInPlayer.txt'
-		toBeDeleted.map! do |name| "#$playerDir/#{name}" end
-
-		puts '----- WARNING! -----'
-		IO.popen 'xargs -0 ls -ld --group-directories-first --color --file-type', 'w' do |pipe|
-			pipe.print toBeDeleted.join "\0"
+	
+	log "#{knownNamesInPlayer.count} known files in player, checking other files"
+	
+	if ! notInDb.empty?
+		wrn 'these files are present in the alreadyInPlayer.txt but absent in the database:'
+		puts '---'
+		notInDb.each do |nameInPlayer, origPath|
+			puts "#{nameInPlayer} (#{origPath})"
 		end
-		raise 'error ls toBeDeleted' if $? != 0
-		puts '----- WARNING! -----'
-		exit if ?y != readChar('these files/directories are not listed in the alreadyInPlayer.txt and about to be deleted, is it ok (N, y)? ', [?n, ?y])
-
-		IO.popen 'xargs -0 rm -rfv', 'w' do |pipe|
-			pipe.print toBeDeleted.join "\0"
+		puts '---'
+		wrn 'these files are present in the alreadyInPlayer.txt but absent in the database'
+		case readChar '(d)elete, do (n)ot delete, (E)xit ? ', [?e, ?d, ?n]
+			when ?e
+				exit
+			when ?d
+				IO.popen 'xargs -0 rm -rv', 'w' do |pipe|
+					pipe.print notInDb.keys.map{|nameInPlayer| "#$playerDir/#{nameInPlayer}"}.join "\0"
+				end
+				raise 'error rm notInDb' if $? != 0
 		end
-		raise 'error rm toBeDeleted' if $? != 0
-
-		log 'syncing done'
 	end
 	
-	log "#{knownNamesInPlayer.count} files in player"
+	unknown = (pdEntries - %w[. .. alreadyInPlayer.txt] - knownNamesInPlayer - notInDb.keys).map{|name| "#$playerDir/#{name}"}
+	if ! unknown.empty?
+		wrn 'these files are not mentioned in the alreadyInPlayer.txt:'
+		puts '---'
+		IO.popen 'xargs -0 ls -ld --group-directories-first --color --file-type', 'w' do |pipe|
+			pipe.print unknown.join "\0"
+		end
+		puts '---'
+		wrn 'these files are not mentioned in the alreadyInPlayer.txt'
+		case readChar '(d)elete, do (n)ot delete, (E)xit ? ', [?e, ?d, ?n]
+			when ?e
+				exit
+			when ?d
+				IO.popen 'xargs -0 rm -rv', 'w' do |pipe|
+					pipe.print unknown.join "\0"
+				end
+				raise 'error rm unknown' if $? != 0
+		end
+	end
 end
 
 def saveAlreadyInPlayer
