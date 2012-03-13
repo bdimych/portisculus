@@ -334,10 +334,8 @@ filesToCopy.shuffle.each_with_index do |f, i|
 				# if file in filesToCopy - later (i.e. now it was not added yet, but later can be, so it looks logically to wait to delete it)
 				filesToCopy.include?(a) and !filesToCopy.include?(b) and next ba
 				!filesToCopy.include?(a) and filesToCopy.include?(b) and next ab
-				# by date
-				next File.mtime(a) <=> File.mtime(b)
-				# finally just usual sort
-				a <=> b
+				# finally by date
+				File.mtime(a) <=> File.mtime(b)
 			end.each do |ff|
 				rmInPlayer ff
 				oldDeleted = true
