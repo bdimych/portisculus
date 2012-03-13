@@ -198,6 +198,8 @@ def rmInPlayer f
 	$stat[:sizeDeleted] += size
 end
 
+
+
 toBeDeleted = {}
 $db.keys.each do |f|
 	if $db[f][:inPlayer]
@@ -228,6 +230,8 @@ if ! toBeDeleted.empty?
 	end
 end
 
+
+
 log 'copy loop'
 filesToCopy.shuffle.each_with_index do |f, i|
 	if added.count == maxNum
@@ -235,7 +239,7 @@ filesToCopy.shuffle.each_with_index do |f, i|
 		break
 	end
 
-	log "doing file #{i+1} from #{filesToCopy.count}: #{f}"
+	log "doing file #{i+1} from #{filesToCopy.count} (added #{added.count}" + (maxNum ? " from #{maxNum}" : '') + "): #{f}"
 	
 	if $db[f][:inPlayer]
 		log 'already in player'
