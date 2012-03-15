@@ -278,23 +278,25 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	if f.beatless? or newBpm == origBpm
 		srcFile = f
 	else
-intTrap = trap 'INT', 'DEFAULT'
 		percent = sprintf '%+.1f', newBpm.to_f*100/origBpm - 100
 		log "target bpm #{newBpm} (#{percent}%), going to apply soundstretch"
 		
 		FileUtils.copy_entry f, './tmp.mp3', false, false, true
 		
+intTrap = trap 'INT', 'DEFAULT'
+
 		log (cmd = %w(lame --decode tmp.mp3 tmp-decoded.wav)).join ' '
-		raise 'error decoding mp3' if ! mySystem *cmd
+		raise 'error decoding mp3' if ! system *cmd
 		
 		log (cmd = %W(soundstretch tmp-decoded.wav tmp-stretched.wav -tempo=#{percent})).join ' '
-		raise 'soundstretch failed' if ! mySystem *cmd
+		raise 'soundstretch failed' if ! system *cmd
 		
 		log (cmd = %w(lame --nohist --preset medium tmp-stretched.wav tmp-result.mp3)).join ' '
-		raise 'error encoding mp3' if ! mySystem *cmd
+		raise 'error encoding mp3' if ! system *cmd
+		
+trap 'INT', intTrap
 		
 		srcFile = 'tmp-result.mp3'
-trap 'INT', intTrap
 	end
 	
 	# name in player
