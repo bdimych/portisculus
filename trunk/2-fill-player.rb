@@ -278,6 +278,7 @@ filesToCopy.shuffle.each_with_index do |f, i|
 	if f.beatless? or newBpm == origBpm
 		srcFile = f
 	else
+intTrap = trap 'INT', 'DEFAULT'
 		percent = sprintf '%+.1f', newBpm.to_f*100/origBpm - 100
 		log "target bpm #{newBpm} (#{percent}%), going to apply soundstretch"
 		
@@ -293,6 +294,7 @@ filesToCopy.shuffle.each_with_index do |f, i|
 		raise 'error encoding mp3' if ! mySystem *cmd
 		
 		srcFile = 'tmp-result.mp3'
+trap 'INT', intTrap
 	end
 	
 	# name in player
