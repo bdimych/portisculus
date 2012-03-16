@@ -230,7 +230,7 @@ def readAlreadyInPlayer
 	if ! unknown.empty?
 		wrn 'these files are not mentioned in the alreadyInPlayer.txt:'
 		puts '---'
-		IO.popen 'xargs -0 ls -ld --group-directories-first --color --file-type', 'w' do |pipe|
+		IO.popen 'xargs -0 ls -ld --group-directories-first --color --file-type --time-style=long-iso', 'w' do |pipe|
 			pipe.print unknown.join "\0"
 		end
 		puts '---'
@@ -245,6 +245,8 @@ def readAlreadyInPlayer
 				raise 'error rm unknown' if $? != 0
 		end
 	end
+	
+	log 'readAlreadyInPlayer done'
 end
 
 def saveAlreadyInPlayer
@@ -306,7 +308,7 @@ def readChar prompt, possibleChars = nil
 end
 
 def askYesNo prompt
-	?n != readChar("#{prompt} (Y, n)? ", [?y, ?n])
+	?n != readChar("#{prompt} (Y, n) ", [?y, ?n])
 end
 
 
