@@ -146,14 +146,14 @@ $db.keys.sort.each do |f|
 		when 'skip'
 			puts
 			puts "file #{f}"
-			if askYesNo 'save as skipped'
+			if askYesNo 'save as skipped?'
 				dbSet f, :flag, '-'
 				msg = 'skipped'
 			end
 		when 'beatless'
 			puts
 			puts "file #{f}"
-			if askYesNo 'save as beatless'
+			if askYesNo 'save as beatless?'
 				dbSet f, :flag, '='
 				msg = 'beatless'
 			end

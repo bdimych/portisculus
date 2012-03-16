@@ -6,7 +6,7 @@ require 'lib.rb'
 
 
 rangeNeeded = 153..176      # нужный диапазон bpm
-rangeAllowed = [0.95, 1.15] # максимальный коефициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
+rangeAllowed = [0.93, 1.17] # максимальный коефициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
 bestOnly = false            # только лучшие песни
 grep = nil
 maxNum = nil
@@ -99,7 +99,7 @@ regular expression:      #{grep ? grep : 'none'}
 e
 usage 'no files to process' if filesToCopy.empty?
 puts
-exit if ! askYesNo 'is this correct? start main program'
+exit if ! askYesNo 'is this correct? start main program?'
 puts
 
 
