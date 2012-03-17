@@ -98,10 +98,7 @@ class Array
 	end
 end
 
-result = aip.insertEvenly(best).insertEvenly(beatless).each_with_index.map do |hash, i|
-	hash[:name].sub!(/^\d\d\d\d/, sprintf('%04u', i))
-	hash
-end
+result = aip.insertEvenly(best).insertEvenly(beatless)
 
 log 'resulted order:'
 result.each do |hash|
@@ -114,6 +111,14 @@ for i in 0..(result.count-2)
 	neighbouringBpmDiff.push( (result[i][:bpm].to_i - result[i+1][:bpm].to_i).abs )
 end
 log "neighbouringBpmDiff: min: #{neighbouringBpmDiff.min}, max: #{neighbouringBpmDiff.max}, aver: #{neighbouringBpmDiff.reduce(:+)/neighbouringBpmDiff.count}"
+
+
+
+
+
+
+
+log 'applying order to the player directory'
 
 
 
