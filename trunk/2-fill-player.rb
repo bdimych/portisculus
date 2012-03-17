@@ -204,35 +204,40 @@ end
 
 
 
-toBeDeleted = {}
+becomeSkipped = []
+becomeOutOfRange = []
 $db.keys.each do |f|
 	if $db[f][:inPlayer]
 		if f.skipped?
-			toBeDeleted[f] = 'skipped'
+			becomeSkipped.push f
 		elsif $db[f][:inPlayer][:bpm]!='BLS' and !rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
-			toBeDeleted[f] = 'out of range'
+			becomeOutOfRange.push f
 		end
 	end
 end
-if ! toBeDeleted.empty?
-	wrn 'these files are about to be deleted from player cause of become skipped or out of range:'
-	puts '---'
-	toBeDeleted.each_pair do |f, reason|
-		printf "%-15s%s\n", reason, $db[f][:inPlayer][:name]
-	end
-	puts '---'
-	wrn 'these files are about to be deleted from player cause of become skipped or out of range'
-	case readChar '(d)elete, do (n)ot delete, (E)xit ? ', [?e, ?d, ?n]
-		when ?e
-			exit
-		when ?d
-			toBeDeleted.each_key do |f|
-				rmInPlayer f
-				exitIfWasCtrlC
-			end
-			log "#{$deleted.count} were deleted"
+def rmBecomeXXX xxx, arr
+	if ! arr.empty?
+		wrn "these files are about to be deleted from player cause of become #{xxx}:"
+		puts '---'
+		arr.each do |f|
+			puts "#{$db[f][:inPlayer][:name]} (#{f})"
+		end
+		puts '---'
+		wrn "these files are about to be deleted from player cause of become #{xxx}"
+		case readChar '(d)elete, do (n)ot delete, (E)xit ? ', [?e, ?d, ?n]
+			when ?e
+				exit
+			when ?d
+				arr.each do |f|
+					rmInPlayer f
+					exitIfWasCtrlC
+				end
+				log "#{$deleted.count} were deleted"
+		end
 	end
 end
+rmBecomeXXX 'skipped', becomeSkipped
+rmBecomeXXX 'out of range', becomeOutOfRange
 
 
 
