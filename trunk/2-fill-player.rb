@@ -157,7 +157,7 @@ at_exit {
 
 	puts
 	puts
-	log "------------------------------------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------------------------------------"
+	log "------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------"
 	if $deleted.empty? and added.empty?
 		log 'no files were deleted or added, no need to saveAlreadyInPlayer'
 	else
@@ -189,7 +189,7 @@ at_exit {
 	end
 
 	puts
-	log "------------------------------------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------------------------------------\n\n\n"
+	log "------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------\n\n\n"
 }
 
 def rmInPlayer f
@@ -349,7 +349,7 @@ trap 'INT', intTrap
 				filesToCopy.include?(a) and !filesToCopy.include?(b) and next ba
 				!filesToCopy.include?(a) and filesToCopy.include?(b) and next ab
 				# finally by date
-				File.mtime(a) <=> File.mtime(b)
+				File.mtime("#$playerDir/#{$db[a][:inPlayer][:name]}") <=> File.mtime("#$playerDir/#{$db[b][:inPlayer][:name]}")
 			end.each do |ff|
 				rmInPlayer ff
 				oldDeleted = true
