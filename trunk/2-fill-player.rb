@@ -10,6 +10,7 @@ rangeAllowed = [0.91, 1.19] # максимальный коефициент на
 bestOnly = false            # только лучшие песни
 grep = nil
 maxNum = nil
+dndo = nil
 
 
 
@@ -36,6 +37,7 @@ possible options:
    -r N-N   - needed bpm range
    -n N     - maximum number of files to copy
    -b       - copy only best songs
+   -dndo    - do not delete old - exit when no space left on player
    remaining argument will be used as regular expression and only matched files will be copied
 e
 	exit errorMsg ? 1 : 0
@@ -65,6 +67,8 @@ while ! ARGV.empty?
 			end
 		when '-pd'
 			$playerDir = Pathname.new(ARGV.shift).cleanpath.to_s
+		when '-dndo'
+			dndo = true
 		else
 			grep = a
 	end
@@ -322,7 +326,13 @@ trap 'INT', intTrap
 			break
 		rescue Errno::ENOSPC
 			FileUtils.rm trgFile # cleanup _is_required_ else next FileUtils.cp can get troubles with this partially copied file permissions
-			wrn 'NO SPACE LEFT, will try to delete some old file'
+			wrn 'NO SPACE LEFT'
+			if dndo
+				log 'stop cause of -dndo'
+				noSpace = true
+				break
+			end
+			log 'will try to delete some old file'
 			oldDeleted = false
 			$db.keys.select do |ff|
 				$db[ff][:inPlayer] and ! added.include? ff
