@@ -71,7 +71,7 @@ log 'calculating new order'
 for i in 0..(aip.count-3)
 	newNextInd = i + 1
 	maxDiff = 0
-	for j in (i+1)..(i+10)
+	for j in (i+1)..(i+5)
 		break if j == aip.count
 		diff = aip[i][:bpm].to_i - aip[j][:bpm].to_i
 		if diff.abs > maxDiff.abs
@@ -82,24 +82,25 @@ for i in 0..(aip.count-3)
 	aip[i+1], aip[newNextInd] = aip[newNextInd], aip[i+1]
 end
 
-ordered = aip
-
-if ! best.empty?
-	log "inserting #{best.count} best songs evenly"
-p	interval = (aip.count.to_f/(best.count+1)).round
-	ordered = []
-	for i in 0..(aip.count-1)
-		ordered.push aip[i]
-		if i > 0 and (i+1)%interval == 0 and ! best.empty?
-p i
-			ordered.push best.shift
+class Array
+	def insertEvenly ins
+		interval = (self.count.to_f/(ins.count+1)).round
+		log "insertEvenly: self.count: #{self.count}, ins.count: #{ins.count}, interval: #{interval}"
+		new = []
+		for i in 0..(self.count-1)
+			new.push self[i]
+			if i > 0 and (i+1)%interval == 0 and ! ins.empty?
+				new.push ins.shift
+			end
 		end
+		raise 'something went wrong: "ins" array is not empty after inserting' if ! ins.empty?
+		new
 	end
-	raise 'something went wrong: best is not empty after inserting' if ! best.empty?
-	aip = ordered
 end
 
-ordered.each do |hash|
+result = aip.insertEvenly(best).insertEvenly(beatless)
+
+result.each do |hash|
 	p hash
 end
 
