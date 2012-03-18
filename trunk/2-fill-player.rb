@@ -159,11 +159,6 @@ at_exit {
 	puts
 	puts
 	log "------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------"
-	if $deleted.empty? and added.empty?
-		log 'no files were deleted or added, no need to saveAlreadyInPlayer'
-	else
-		saveAlreadyInPlayer
-	end
 	puts
 
 	puts "deleted #{$deleted.count}:"
@@ -188,8 +183,15 @@ at_exit {
 	unsuitable.keys.sort.each do |f|
 		puts "#{f}: #{unsuitable[f].inspect}"
 	end
-
 	puts
+
+	if $deleted.empty? and added.empty?
+		log 'no files were deleted or added, no need to saveAlreadyInPlayer'
+	else
+		saveAlreadyInPlayer
+	end
+	puts
+
 	log "------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------\n\n\n"
 }
 
