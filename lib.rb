@@ -226,7 +226,7 @@ def readAlreadyInPlayer
 		end
 	end
 	
-	unknown = (pdEntries - %w[. .. alreadyInPlayer.txt] - knownNamesInPlayer - notInDb.keys).map{|name| "#$playerDir/#{name}"}
+	unknown = (pdEntries - %w[. .. alreadyInPlayer.txt tempDirForOrdering] - knownNamesInPlayer - notInDb.keys).map{|name| "#$playerDir/#{name}"}
 	if ! unknown.empty?
 		wrn 'these files are not mentioned in the alreadyInPlayer.txt:'
 		puts '---'
