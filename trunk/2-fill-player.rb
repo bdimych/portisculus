@@ -5,12 +5,12 @@ require 'lib.rb'
 
 
 
-rangeNeeded = 157..172      # нужный диапазон bpm
+rangeNeeded = 155..172      # нужный диапазон bpm
 rangeAllowed = [0.91, 1.19] # максимальный коефициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
 bestOnly = false            # только лучшие песни
 grep = nil
 maxNum = nil
-dndo = nil
+dndo = false
 
 
 
@@ -99,6 +99,7 @@ player directory:        #$playerDir (#{playerFreeSpace})
 needed bpm range:        #{rangeNeeded.min}-#{rangeNeeded.max}
 num of files to copy:    #{maxNum ? maxNum : 'all'} of #{filesToCopy.count}
 only best songs:         #{bestOnly ? 'yes' : 'no'}
+do not delete old:       #{dndo ? 'yes' : ''}
 regular expression:      #{grep ? grep : 'none'}
 e
 usage 'no files to process' if filesToCopy.empty?
