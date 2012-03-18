@@ -38,12 +38,14 @@ usage '-pd must be specified' if ! $playerDir
 usage "-pd \"#$playerDir\" does not exist" if ! File.directory? $playerDir
 log 'parsing done'
 
+log "first files in the #{$playerDir}:"
+puts '---'
+system "ls '#$playerDir' | head"
+puts '---'
+exit if ! askYesNo 'is this a player directory? start ordering?'
+
 readDb
 readAlreadyInPlayer
-
-log "first files in the #{$playerDir}..."
-system "ls '#$playerDir' | head"
-exit if ! askYesNo '...is this a player directory? start ordering?'
 
 
 
@@ -67,7 +69,13 @@ $db.keys.shuffle.each do |f|
 	end
 end
 
+
+
+
+
+
 log 'calculating new order'
+
 for i in 0..(aip.count-3)
 	newNextInd = i + 1
 	maxDiff = 0
@@ -99,18 +107,6 @@ class Array
 end
 
 result = aip.insertEvenly(best).insertEvenly(beatless)
-
-log 'resulted order:'
-result.each do |hash|
-	puts hash[:name]
-end
-
-neighbouringBpmDiff = []
-for i in 0..(result.count-2)
-	next if result[i][:bpm] == 'BLS' or result[i+1][:bpm] == 'BLS'
-	neighbouringBpmDiff.push( (result[i][:bpm].to_i - result[i+1][:bpm].to_i).abs )
-end
-log "neighbouringBpmDiff: min: #{neighbouringBpmDiff.min}, max: #{neighbouringBpmDiff.max}, aver: #{neighbouringBpmDiff.reduce(:+)/neighbouringBpmDiff.count}"
 
 
 
