@@ -42,7 +42,7 @@ readDb
 readAlreadyInPlayer
 
 log "first files in the #{$playerDir}..."
-system "ls -l --group-directories-first --color --file-type --time-style=long-iso '#$playerDir' | head"
+system "ls '#$playerDir' | head"
 exit if ! askYesNo '...is this a player directory? start ordering?'
 
 
@@ -120,8 +120,32 @@ log "neighbouringBpmDiff: min: #{neighbouringBpmDiff.min}, max: #{neighbouringBp
 
 log 'applying order to the player directory'
 
+tmpDir = "#$playerDir/tempDirForOrdering"
+if ! File.directory? tmpDir
+	log "mkdir #{tmpDir}"
+	Dir.mkdir tmpDir
+end
 
+log 'copying to the temp dir'
+result.each_with_index do |hash, i|
+	from = "#$playerDir/#{hash[:name]}"
+	to = "#{tmpDir}/#{hash[:name]}"
+	printf "#{i+1} from #{result.count}: %-90s -> %s\n", from, to
+	File.rename from, to
+end
 
+log 'copying back to the player root'
+result.each_with_index do |hash, i|
+	from = "#{tmpDir}/#{hash[:name]}"
+	hash[:name].sub!(/^..../, sprintf('%04u', i))
+	to = "#$playerDir/#{hash[:name]}"
+	printf "#{i+1} from #{result.count}: %-110s -> %s\n", from, to
+	File.rename from, to
+end
+
+saveAlreadyInPlayer
+
+log 'files ordered!'
 
 
 
