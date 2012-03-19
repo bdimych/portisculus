@@ -155,7 +155,7 @@ result.each_with_index do |hash, i|
 	to = "#$playerDir/#{hash[:name]}"
 	printf "#{i+1} of #{result.count}: %-110s -> %s\n", from, to
 	File.rename from, to
-	sleep 0.05
+	sleep 0.25
 end
 
 saveAlreadyInPlayer
