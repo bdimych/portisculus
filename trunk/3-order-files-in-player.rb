@@ -79,7 +79,7 @@ log 'calculating new order'
 for i in 0..(aip.count-3)
 	newNextInd = i + 1
 	maxDiff = 0
-	for j in (i+1)..(i+15)
+	for j in (i+1)..(i+20)
 		break if j == aip.count
 		diff = aip[i][:bpm].to_i - aip[j][:bpm].to_i
 		if diff.abs > maxDiff.abs
@@ -155,6 +155,7 @@ result.each_with_index do |hash, i|
 	to = "#$playerDir/#{hash[:name]}"
 	printf "#{i+1} of #{result.count}: %-110s -> %s\n", from, to
 	File.rename from, to
+	sleep 0.05
 end
 
 saveAlreadyInPlayer
