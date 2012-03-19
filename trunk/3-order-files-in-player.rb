@@ -79,7 +79,7 @@ log 'calculating new order'
 for i in 0..(aip.count-3)
 	newNextInd = i + 1
 	maxDiff = 0
-	for j in (i+1)..(i+20)
+	for j in (i+1)..(i+10)
 		break if j == aip.count
 		diff = aip[i][:bpm].to_i - aip[j][:bpm].to_i
 		if diff.abs > maxDiff.abs
