@@ -120,7 +120,7 @@ $db.keys.sort.each do |f|
 	next if ! f.withoutBpm?
 
 	pass2[0] += 1
-	progress = "Second pass: #{pass2[0]} from #{pass2[1]}"
+	progress = "Second pass: #{pass2[0]} of #{pass2[1]}"
 	puts ".#{'-' * (f.length+8+6)}."
 	puts "|    #{progress}#{' ' * (f.length+4+6-progress.length)}|"
 	puts "|    File: #{f}    |"
