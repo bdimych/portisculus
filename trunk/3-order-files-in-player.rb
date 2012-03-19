@@ -79,7 +79,7 @@ log 'calculating new order'
 for i in 0..(aip.count-3)
 	newNextInd = i + 1
 	maxDiff = 0
-	for j in (i+1)..(i+5)
+	for j in (i+1)..(i+15)
 		break if j == aip.count
 		diff = aip[i][:bpm].to_i - aip[j][:bpm].to_i
 		if diff.abs > maxDiff.abs
@@ -113,33 +113,73 @@ result = aip.insertEvenly(best).insertEvenly(beatless)
 
 
 
+# упор€дочить файлы на fat32 это известна€ задача именно дл€ mp3 плееров - google://fat32 file ordering
+# иде€ вз€та отсюда http://www.murraymoffatt.com/software-problem-0010.html -> http://www.murraymoffatt.com/sortfolder.zip
+# просто переместить все файлы во временный каталог, а потом назад но уже в нужном пор€дке и тогда драйвер файловой системы их так и запишет
+#
+# (у мен€ плеер ALcom Active WP-400)
 
 log 'applying order to the player directory'
 
+startedAt = Time.now
+
 tmpDir = "#$playerDir/tempDirForOrdering"
-if ! File.directory? tmpDir
-	log "mkdir #{tmpDir}"
-	Dir.mkdir tmpDir
-end
+log "mkdir #{tmpDir}"
+Dir.mkdir tmpDir
 
 log 'copying to the temp dir'
 result.each_with_index do |hash, i|
 	from = "#$playerDir/#{hash[:name]}"
 	to = "#{tmpDir}/#{hash[:name]}"
-	printf "#{i+1} from #{result.count}: %-90s -> %s\n", from, to
+	printf "#{i+1} of #{result.count}: %-90s -> %s\n", from, to
 	File.rename from, to
 end
+File.rename "#$playerDir/alreadyInPlayer.txt", "#{tmpDir}/alreadyInPlayer.txt"
+
+# один раз было так что после перемещени€ назад в корень пор€док не получилс€
+# получилось "закругление": 0012, 0013, 0014, ..., 0763, 0000, 0001, ..., 0011
+# т.е. такое впечатление что система возможно что-то там кэширует дл€ usb
+# и начала заполн€ть €чейки дл€ файлов те которые последние освободились и ещЄ вис€т в буфере
+# € не уверен, но вдруг этот "тычок кэша" поможет
+tfdm = "#$playerDir/temp-file-delete-me.txt"
+sleep 1
+File.open(tfdm, 'w') {|fh| fh.puts tfdm}
+sleep 1
+File.delete tfdm
+sleep 1
 
 log 'copying back to the player root'
 result.each_with_index do |hash, i|
 	from = "#{tmpDir}/#{hash[:name]}"
 	hash[:name].sub!(/^..../, sprintf('%04u', i))
 	to = "#$playerDir/#{hash[:name]}"
-	printf "#{i+1} from #{result.count}: %-110s -> %s\n", from, to
+	printf "#{i+1} of #{result.count}: %-110s -> %s\n", from, to
 	File.rename from, to
 end
 
 saveAlreadyInPlayer
+
+log "rmdir #{tmpDir}"
+File.delete "#{tmpDir}/alreadyInPlayer.txt"
+Dir.rmdir tmpDir
+
+
+
+
+
+log "applying done in #{(Time.now - startedAt).round} seconds, checking fs order"
+
+lsU = %x(ls -U '#$playerDir').split("\n") & result.map{|h| h[:name]}
+File.open('tmp-lsU.txt', 'w') {|fh| fh.puts lsU.join "\n"}
+File.open('tmp-result.txt', 'w') {|fh| fh.puts result.map{|h| h[:name]}.join "\n"}
+diffCmd = %w(diff tmp-lsU.txt tmp-result.txt)
+puts diffCmd.join ' '
+if ! system *diffCmd
+	raise 'lsU != result'
+end
+
+
+
 
 log 'files ordered!'
 
