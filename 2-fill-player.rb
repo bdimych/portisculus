@@ -251,7 +251,7 @@ filesToCopy.shuffle.each_with_index do |f, i|
 		break
 	end
 
-	log "doing file #{i+1} from #{filesToCopy.count} (added #{added.count}" + (maxNum ? " from #{maxNum}" : '') + "): #{f}"
+	log "doing file #{i+1} of #{filesToCopy.count} (added #{added.count}" + (maxNum ? " of #{maxNum}" : '') + "): #{f}"
 	
 	if $db[f][:inPlayer]
 		log 'already in player'
