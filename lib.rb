@@ -1,3 +1,10 @@
+require 'pathname'
+require 'fileutils'
+require 'mp3info'
+
+
+
+
 STDOUT.sync = true
 
 def log msg
@@ -18,6 +25,78 @@ if %x(soundstretch 2>&1) !~ /SoundStretch.*Written by Olli Parviainen/
 end
 
 raise 'could not run mplayer' if ! system('mplayer >/dev/null')
+
+
+
+
+
+
+
+def ARGV.getDbFile
+	i = self.index '-dbf'
+	usage '-dbf must be specified' if ! i
+	
+	dbf = Pathname.new(self.slice!(i, 2)[1]).cleanpath.to_s
+	usage "-dbf \"#{dbf}\" does not exist" if ! File.file? dbf
+	usage "empty file -dbf \"#{dbf}\"" if 0 == File.size(dbf)
+
+	$dbFile = dbf
+	log "database file #$dbFile"
+end
+
+def ARGV.getPlayerDir
+	i = self.index '-prd'
+	usage '-prd must be specified' if ! i
+	
+	prd = Pathname.new(self.slice!(i, 2)[1]).cleanpath.to_s
+	usage "-prd \"#{prd}\" does not exist" if ! File.directory? prd
+	log "player root directory #{prd}"
+	
+	Dir.entries(prd).each do |d|
+		if File.directory? "#{prd}/#{d}" and d =~ /^portisculus-\d+$/
+			$playerDir = "#{prd}/#{d}"
+			log "portisculus directory found: #$playerDir, several first files:"
+			puts '---'
+			system "ls '#$playerDir' | head"
+			puts '---'
+			exit if ! askYesNo 'is this directory correct?'
+		end
+	end
+	if ! $playerDir
+		$playerDir = "#{prd}/portisculus-1"
+		exit if ! askYesNo "there is no portisculus directory in player root so going to create \"#$playerDir\", proceed?"
+		log "mkdir #$playerDir"
+		Dir.mkdir $playerDir
+	end
+end
+
+def usage errorMsg = nil
+	if errorMsg
+		puts
+		puts "ERROR! #{errorMsg}"
+	end
+	puts "\noptions:\n   #{$options.split("\n").join("\n   ")}\n"
+	exit errorMsg ? 1 : 0
+end
+
+def start readInPlayer = false
+	$options = "-dbf /bpm/database/file.txt (required)\n#$options"
+	$options = "-prd /player/root/directory (required)\n#$options" if readInPlayer
+	usage if ARGV.include? '--help'
+
+	log "#{File.basename $0} started"
+	
+	ARGV.getDbFile
+	ARGV.getPlayerDir if readInPlayer
+	
+	readDb
+	readAlreadyInPlayer if readInPlayer
+end
+
+
+
+
+
 
 
 
@@ -107,7 +186,6 @@ end
 
 
 
-require 'pathname'
 def readDb
 	log 'reading db';
 	File.open($dbFile).each do |line|
@@ -171,17 +249,16 @@ E:                 95232 50050     45182  53% /cygdrive/e
 	return sprintf '%.1f Mb used, %.1f Mb free', tmp[2].to_f/1024, tmp[3].to_f/1024
 end
 
-require 'fileutils'
 def readAlreadyInPlayer
-	$aipTxt = "#$playerDir/alreadyInPlayer.txt"
-	log "reading #$aipTxt"
+	aipTxt = "#$playerDir/alreadyInPlayer.txt"
+	log "reading #{aipTxt}"
 	
 	pdEntries = Dir.entries $playerDir
 	
 	knownNamesInPlayer = []
 	notInDb = {}
 	if pdEntries.include? 'alreadyInPlayer.txt'
-		File.open($aipTxt).each do |line|
+		File.open(aipTxt).each do |line|
 			# 1234-160---Song name.mp3 < /orig/path
 			# |    |
 			# |    bpm in player
@@ -200,7 +277,7 @@ def readAlreadyInPlayer
 					notInDb[nameInPlayer] = origPath
 				end
 			else
-				raise "could not parse line in the #$aipTxt: \"#{line}\""
+				raise "could not parse line in the #{aipTxt}: \"#{line}\""
 			end
 		end
 	end
@@ -250,12 +327,13 @@ def readAlreadyInPlayer
 end
 
 def saveAlreadyInPlayer
-	log "saving #$aipTxt"
+	aipTxt = "#$playerDir/alreadyInPlayer.txt"
+	log "saving #{aipTxt}"
 	lines = []
 	$db.each_pair do |f, hash|
 		lines.push "#{hash[:inPlayer][:name]} < #{f}" if hash[:inPlayer]
 	end
-	File.open $aipTxt, 'w' do |fh|
+	File.open aipTxt, 'w' do |fh|
 		lines.sort.each do |l|
 			fh.puts l
 		end
@@ -319,7 +397,6 @@ def sec_min_sec sec
 	"#{sec} sec (#{sec/60} min #{sec%60} sec)"
 end
 
-require 'mp3info'
 def checkSongLength file, tooLongHash
 	log 'checkSongLength'
 	msg = sec_min_sec(l = Mp3Info.new(file).length.round)

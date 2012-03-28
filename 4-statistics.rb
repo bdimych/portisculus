@@ -4,50 +4,7 @@ require 'lib.rb'
 
 
 
-# parsing command line
-
-log 'parsing command line'
-
-def usage errorMsg = nil
-	if errorMsg
-		puts
-		puts "ERROR! #{errorMsg}"
-	end
-	puts <<e
-
-options:
-   -dbf /bpm/database/file.txt  (required)
-   -pd /player/directory        (required)
-e
-	exit errorMsg ? 1 : 0
-end
-usage if ARGV.include? '--help'
-
-require 'pathname'
-while ! ARGV.empty?
-	case a = ARGV.shift
-		when /-dbf/
-			$dbFile = ARGV.shift
-		when '-pd'
-			$playerDir = Pathname.new(ARGV.shift).cleanpath.to_s
-	end
-end
-usage '-dbf must be specified' if ! $dbFile
-usage "-dbf \"#$dbFile\" does not exist" if ! File.file? $dbFile
-usage '-pd must be specified' if ! $playerDir
-usage "-pd \"#$playerDir\" does not exist" if ! File.directory? $playerDir
-log 'parsing done'
-
-log "first files in the #{$playerDir}:"
-puts '---'
-system "ls '#$playerDir' | head"
-puts '---'
-exit if ! askYesNo 'is this a player directory?'
-
-readDb
-readAlreadyInPlayer
-
-
+start true
 
 
 
@@ -59,6 +16,10 @@ $db.each do |f, hash|
 		hash[:inPlayer][:origPath] = f
 		aip.push hash[:inPlayer]
 	end
+end
+if aip.empty?
+	log 'there are no songs in player, nothing to do'
+	exit
 end
 
 lsU = %x(ls -U '#$playerDir').split "\n"
