@@ -4,16 +4,7 @@ require 'lib.rb'
 
 
 
-
-$dbFile = ARGV.shift
-if ! $dbFile
-	puts "ERROR: usage: #$0 /bpm/database/file.txt"
-	exit 1
-elsif ! File.file? $dbFile
-	puts "ERROR: file \"#$dbFile\" does not exist"
-	exit 1
-end
-readDb
+start
 
 
 
