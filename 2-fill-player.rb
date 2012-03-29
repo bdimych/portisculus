@@ -20,66 +20,42 @@ srand
 
 
 
-# parsing command line
 
-log 'parsing command line'
+# get options and ask for confirmation
 
-def usage errorMsg = nil
-	if errorMsg
-		puts
-		puts "ERROR! #{errorMsg}"
-	end
-	puts <<e
-
-possible options:
-   -dbf /bpm/database/file.txt  (required)
-   -pd /player/directory        (required)
-   -r N-N   - needed bpm range
-   -n N     - maximum number of files to copy
-   -b       - copy only best songs
-   -dndo    - do not delete old - exit when no space left on player
-   remaining argument will be used as regular expression and only matched files will be copied
+$options = <<e
+-r n-n   - needed bpm range
+-n n     - maximum number of files to copy
+-b       - copy only best songs
+-dndo    - do not delete old - exit when no space left on player
+remaining argument will be used as regular expression and only matched files will be copied
 e
-	exit errorMsg ? 1 : 0
-end
-usage if ARGV.include? '--help'
-
-require 'pathname'
-while ! ARGV.empty?
-	case a = ARGV.shift
-		when /-dbf/
-			$dbFile = ARGV.shift
-		when /-n(.*)/
-			maxNum = $1.empty? ? ARGV.shift : $1
-			usage '-n should be a number' if maxNum !~ /^\d+$/
-			maxNum = maxNum.to_i
-		when '-b'
-			bestOnly = true
-		when /-r(.*)/
-			val = $1.empty? ? ARGV.shift : $1
-			if val =~ /^(\d+)-(\d+)$/
-				rangeNeeded = Range.new $1.to_i, $2.to_i
-				if rangeNeeded.min == nil
-					usage 'first value in range is larger then the last'
+start(true) {
+	while ! ARGV.empty?
+		case a = ARGV.shift
+			when /-r(.*)/
+				val = $1.empty? ? ARGV.shift : $1
+				if val =~ /^(\d+)-(\d+)$/
+					rangeNeeded = Range.new $1.to_i, $2.to_i
+					if rangeNeeded.min == nil
+						usage 'first value in range is larger then the last'
+					end
+				else
+					usage 'range is specified incorrectly - should be "number-number"'
 				end
+			when /-n(.*)/
+				maxNum = $1.empty? ? ARGV.shift : $1
+				usage '-n should be a number' if maxNum !~ /^\d+$/
+				maxNum = maxNum.to_i
+			when '-b'
+				bestOnly = true
+			when '-dndo'
+				dndo = true
 			else
-				usage 'range is specified incorrectly - should be "number-number"'
-			end
-		when '-pd'
-			$playerDir = Pathname.new(ARGV.shift).cleanpath.to_s
-		when '-dndo'
-			dndo = true
-		else
-			grep = a
+				grep = a
+		end
 	end
-end
-usage '-dbf must be specified' if ! $dbFile
-usage "-dbf \"#$dbFile\" does not exist" if ! File.file? $dbFile
-usage '-pd must be specified' if ! $playerDir
-usage "-pd \"#$playerDir\" does not exist" if ! File.directory? $playerDir
-log 'parsing done'
-
-readDb
+}
 
 puts
 filesToCopy = $db.keys.sort.select do |path|
@@ -95,7 +71,7 @@ if grep or bestOnly
 	puts
 end
 puts <<e
-player directory:        #$playerDir (#{playerFreeSpace})
+target directory:        #$playerDir (#{playerFreeSpace})
 needed bpm range:        #{rangeNeeded.min}-#{rangeNeeded.max}
 num of files to copy:    #{maxNum ? maxNum : 'all'} of #{filesToCopy.count}
 only best songs:         #{bestOnly ? 'yes' : 'no'}
@@ -116,10 +92,7 @@ puts
 
 # main program
 
-puts 'STARTING MAIN PROGRAM'
-puts
-
-readAlreadyInPlayer
+log 'preparing for copy loop'
 
 tooLong = {}
 unsuitable = {}
@@ -207,6 +180,9 @@ end
 
 
 
+
+# clean up songs become skipped and/or out of range
+
 becomeSkipped = []
 becomeOutOfRange = []
 $db.keys.each do |f|
@@ -220,13 +196,13 @@ $db.keys.each do |f|
 end
 def rmBecomeXXX xxx, arr
 	if ! arr.empty?
-		wrn "these files are about to be deleted from player cause of become #{xxx}:"
+		wrn "these #{arr.count} files are about to be deleted from player cause of become #{xxx}:"
 		puts '---'
 		arr.each do |f|
 			puts "#{$db[f][:inPlayer][:name]} (#{f})"
 		end
 		puts '---'
-		wrn "these files are about to be deleted from player cause of become #{xxx}"
+		wrn "these #{arr.count} files are about to be deleted from player cause of become #{xxx}"
 		case readChar '(d)elete, do (n)ot delete, (E)xit ? ', [?e, ?d, ?n]
 			when ?e
 				exit
@@ -243,6 +219,10 @@ rmBecomeXXX 'skipped', becomeSkipped
 rmBecomeXXX 'out of range', becomeOutOfRange
 
 
+
+
+
+# main loop
 
 log 'copy loop'
 filesToCopy.shuffle.each_with_index do |f, i|
