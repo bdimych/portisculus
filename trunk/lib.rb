@@ -88,6 +88,8 @@ def start readInPlayer = false
 	
 	ARGV.getDbFile
 	ARGV.getPlayerDir if readInPlayer
+
+	yield if block_given?
 	
 	readDb
 	readAlreadyInPlayer if readInPlayer
@@ -285,13 +287,13 @@ def readAlreadyInPlayer
 	log "#{knownNamesInPlayer.count} known files in player, checking other files"
 	
 	if ! notInDb.empty?
-		wrn 'these files are present in the alreadyInPlayer.txt but absent in the database:'
+		wrn "these #{notInDb.count} files are present in the alreadyInPlayer.txt but absent in the database:"
 		puts '---'
 		notInDb.each do |nameInPlayer, origPath|
 			puts "#{nameInPlayer} (#{origPath})"
 		end
 		puts '---'
-		wrn 'these files are present in the alreadyInPlayer.txt but absent in the database'
+		wrn "these #{notInDb.count} files are present in the alreadyInPlayer.txt but absent in the database"
 		case readChar '(d)elete, do (n)ot delete, (E)xit ? ', [?e, ?d, ?n]
 			when ?e
 				exit
@@ -305,13 +307,13 @@ def readAlreadyInPlayer
 	
 	unknown = (pdEntries - %w[. .. alreadyInPlayer.txt tempDirForOrdering] - knownNamesInPlayer - notInDb.keys).map{|name| "#$playerDir/#{name}"}
 	if ! unknown.empty?
-		wrn 'these files are not mentioned in the alreadyInPlayer.txt:'
+		wrn "these #{unknown.count} files are not mentioned in the alreadyInPlayer.txt:"
 		puts '---'
 		IO.popen 'xargs -0 ls -ld --group-directories-first --color --file-type --time-style=long-iso', 'w' do |pipe|
 			pipe.print unknown.join "\0"
 		end
 		puts '---'
-		wrn 'these files are not mentioned in the alreadyInPlayer.txt'
+		wrn "these #{unknown.count} files are not mentioned in the alreadyInPlayer.txt"
 		case readChar '(d)elete, do (n)ot delete, (E)xit ? ', [?e, ?d, ?n]
 			when ?e
 				exit
