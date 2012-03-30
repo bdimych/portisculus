@@ -337,7 +337,9 @@ trap 'INT', intTrap
 				filesToCopy.include?(a) and !filesToCopy.include?(b) and next ba
 				!filesToCopy.include?(a) and filesToCopy.include?(b) and next ab
 				# finally by date
-				File.mtime("#$playerDir/#{$db[a][:inPlayer][:name]}") <=> File.mtime("#$playerDir/#{$db[b][:inPlayer][:name]}")
+				$db[a][:inPlayer][:mtime] ||= File.mtime "#$playerDir/#{$db[a][:inPlayer][:name]}"
+				$db[b][:inPlayer][:mtime] ||= File.mtime "#$playerDir/#{$db[b][:inPlayer][:name]}"
+				$db[a][:inPlayer][:mtime] <=> $db[b][:inPlayer][:mtime]
 			end.each do |ff|
 				rmInPlayer ff
 				oldDeleted = true
