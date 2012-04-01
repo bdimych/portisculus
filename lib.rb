@@ -55,7 +55,8 @@ def ARGV.getPlayerDir
 	Dir.entries(prd).each do |d|
 		if File.directory? "#{prd}/#{d}" and d =~ /^portisculus-\d+$/
 			$playerDir = "#{prd}/#{d}"
-			log "portisculus directory found: #$playerDir, several first files:"
+			log "portisculus directory found, several first files:"
+			puts $playerDir
 			puts '---'
 			system "ls '#$playerDir' | head"
 			puts '---'

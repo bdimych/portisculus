@@ -4,53 +4,13 @@ require 'lib.rb'
 
 
 
-# parsing command line
 
-log 'parsing command line'
-
-def usage errorMsg = nil
-	if errorMsg
-		puts
-		puts "ERROR! #{errorMsg}"
-	end
-	puts <<e
-
-options:
-   -dbf /bpm/database/file.txt  (required)
-   -pd /player/directory        (required)
-e
-	exit errorMsg ? 1 : 0
-end
-usage if ARGV.include? '--help'
-
-require 'pathname'
-while ! ARGV.empty?
-	case a = ARGV.shift
-		when /-dbf/
-			$dbFile = ARGV.shift
-		when '-pd'
-			$playerDir = Pathname.new(ARGV.shift).cleanpath.to_s
-	end
-end
-usage '-dbf must be specified' if ! $dbFile
-usage "-dbf \"#$dbFile\" does not exist" if ! File.file? $dbFile
-usage '-pd must be specified' if ! $playerDir
-usage "-pd \"#$playerDir\" does not exist" if ! File.directory? $playerDir
-log 'parsing done'
-
-log "first files in the #{$playerDir}:"
-puts '---'
-system "ls '#$playerDir' | head"
-puts '---'
-exit if ! askYesNo 'is this a player directory? start ordering?'
-
-readDb
-readAlreadyInPlayer
+start true
 
 
 
 
-
+log 'filling arrays of songs'
 
 srand
 
@@ -79,7 +39,7 @@ log 'calculating new order'
 for i in 0..(aip.count-3)
 	newNextInd = i + 1
 	maxDiff = 0
-	for j in (i+1)..(i+10)
+	for j in (i+1)..(i+5)
 		break if j == aip.count
 		diff = aip[i][:bpm].to_i - aip[j][:bpm].to_i
 		if diff.abs > maxDiff.abs
@@ -113,60 +73,45 @@ result = aip.insertEvenly(best).insertEvenly(beatless)
 
 
 
-# упорядочить файлы на fat32 это известная задача именно для mp3 плееров - google://fat32 file ordering
-# идея взята отсюда http://www.murraymoffatt.com/software-problem-0010.html -> http://www.murraymoffatt.com/sortfolder.zip
-# просто переместить все файлы во временный каталог, а потом назад но уже в нужном порядке и тогда драйвер файловой системы их так и запишет
-#
-# (у меня плеер ALcom Active WP-400)
 
-log 'applying order to the player directory'
+log 'applying order'
+
+# СѓРїРѕСЂСЏРґРѕС‡РёС‚СЊ С„Р°Р№Р»С‹ РЅР° fat32 СЌС‚Рѕ РёР·РІРµСЃС‚РЅР°СЏ Р·Р°РґР°С‡Р° РёРјРµРЅРЅРѕ РґР»СЏ mp3 РїР»РµРµСЂРѕРІ - google://fat32 file ordering
+# РёРґРµСЏ РІР·СЏС‚Р° РѕС‚СЃСЋРґР° http://www.murraymoffatt.com/software-problem-0010.html -> http://www.murraymoffatt.com/sortfolder.zip
+# РїСЂРѕСЃС‚Рѕ РїРµСЂРµРјРµСЃС‚РёС‚СЊ РІСЃРµ С„Р°Р№Р»С‹ РІ РЅСѓР¶РЅРѕРј РїРѕСЂСЏРґРєРµ РІ РЅРѕРІС‹Р№ РєР°С‚Р°Р»РѕРі Рё С‚РѕРіРґР° РґСЂР°Р№РІРµСЂ С„Р°Р№Р»РѕРІРѕР№ СЃРёСЃС‚РµРјС‹ РёС… С‚Р°Рє Рё Р·Р°РїРёС€РµС‚
+#
+# (Сѓ РјРµРЅСЏ РїР»РµРµСЂ ALcom Active WP-400)
 
 startedAt = Time.now
 
-tmpDir = "#$playerDir/tempDirForOrdering"
-log "mkdir #{tmpDir}"
-Dir.mkdir tmpDir
+# just increase trailing number /cygdrive/f/portisculus-N
+newPd = $playerDir.sub(/\d+$/) {$&.to_i + 1}
+log "new directory will be #{newPd}"
+Dir.mkdir newPd
 
-log 'copying to the temp dir'
+log 'moving'
 result.each_with_index do |hash, i|
 	from = "#$playerDir/#{hash[:name]}"
-	to = "#{tmpDir}/#{hash[:name]}"
-	printf "#{i+1} of #{result.count}: %-90s -> %s\n", from, to
-	File.rename from, to
-end
-File.rename "#$playerDir/alreadyInPlayer.txt", "#{tmpDir}/alreadyInPlayer.txt"
-
-# один раз было так что после перемещения назад в корень порядок не получился
-# получилось "закругление": 0012, 0013, 0014, ..., 0763, 0000, 0001, ..., 0011
-# т.е. такое впечатление что система возможно что-то там кэширует для usb
-# и начала заполнять ячейки для файлов те которые последние освободились и ещё висят в буфере
-# я не уверен, но вдруг этот "тычок кэша" поможет
-tfdm = "#$playerDir/temp-file-delete-me.txt"
-sleep 1
-File.open(tfdm, 'w') {|fh| fh.puts tfdm}
-sleep 1
-File.delete tfdm
-sleep 1
-
-log 'copying back to the player root'
-result.each_with_index do |hash, i|
-	from = "#{tmpDir}/#{hash[:name]}"
 	hash[:name].sub!(/^..../, sprintf('%04u', i))
-	to = "#$playerDir/#{hash[:name]}"
+	to = "#{newPd}/#{hash[:name]}"
 	printf "#{i+1} of #{result.count}: %-110s -> %s\n", from, to
 	File.rename from, to
-	sleep 0.25
 end
 
+oldPd = $playerDir
+$playerDir = newPd
 saveAlreadyInPlayer
 
-log "rmdir #{tmpDir}"
-File.delete "#{tmpDir}/alreadyInPlayer.txt"
-Dir.rmdir tmpDir
+log "deleting old directory #{oldPd}"
+File.delete "#{oldPd}/alreadyInPlayer.txt"
+Dir.rmdir oldPd
 
 
 
 
+
+
+# РїСЂРѕРІРµСЂРєР°
 
 log "applying done in #{(Time.now - startedAt).round} seconds, checking fs order"
 
