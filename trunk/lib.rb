@@ -226,7 +226,7 @@ def writeDb
 		cnt = 0
 		$db.keys.sort.each do |path|
 			x = $db[path]
-			fh.puts sprintf('%-2s', x[:flag]) + path + (x[:dir] || x[:trailingSlash] ? '/' : ": #{path.beatless? or path.skipped? ? '' : x[:bpm]}")
+			fh.puts sprintf('%-2s', x[:flag]) + path + (x[:dir] || x[:trailingSlash] ? '/' : ": #{(path.beatless? or path.skipped?) ? '' : x[:bpm]}")
 			log cnt if ( (cnt += 1) % 1000 == 0 )
 		end
 	end
