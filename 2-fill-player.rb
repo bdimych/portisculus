@@ -279,6 +279,29 @@ intTrap = trap 'INT', 'DEFAULT'
 
 		log (cmd = %w(lame --decode tmp.mp3 tmp-decoded.wav)).join ' '
 		raise 'error decoding mp3' if ! system *cmd
+							#
+							# как то раз обнаружил на плеере файлы размером всего по несколько килобайт
+							# оказалось это lame ошибается но возвращает ноль:
+							#
+							# bdimych@bdimych-win7 ~/portisculus
+							# $ lame --decode tmp.mp3 tmp-decoded.wav ; echo $?
+							# input:  tmp.mp3  (16 kHz, 1 channel, MPEG-2 Layer II)
+							# output: tmp-decoded.wav  (16 bit, Microsoft WAVE)
+							# skipping initial 241 samples (encoder+decoder delay)
+							# Frame#     2/4325   160 kbps         hip: bitstream problem, resyncing skipping 1818 bytes...
+							# Frame#     3/4325    96 kbps         hip: bitstream problem, resyncing skipping 172184 bytes...
+							# Frame#     4/4325   144 kbps         hip: bitstream problem, resyncing skipping 21274 bytes...
+							# Frame#     5/4325   128 kbps         hip: bitstream problem, resyncing skipping 541 bytes...
+							# Error: sample frequency has changed in MP3 file - not supported
+							#
+							# 0
+							#
+							# этот баг есть в гугле
+							# http://mp3-encoding.31853.n2.nabble.com/lame-decode-failing-to-abort-on-garbage-files-td34649.html
+							# но ещё не исправлен (2012-04-03-03-22-50 версия lame 3.99.5)
+							#
+							# поэтому вот ещё простейшая проверка на размер
+		raise 'tmp-decoded.wav is too small, probably lame failed' if 100000 > File.size('tmp-decoded.wav')
 		
 		log (cmd = %W(soundstretch tmp-decoded.wav tmp-stretched.wav -tempo=#{percent})).join ' '
 		raise 'soundstretch failed' if ! system *cmd
