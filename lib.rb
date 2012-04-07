@@ -120,7 +120,7 @@ def dbStat
 		:skipped => 0,
 		
 		:withoutBpm => 0,
-		:canBeCopied => 0
+		:canBeAdded => 0
 	}
 	$db.each do |path, hash|
 		if hash[:nonexistent]
@@ -136,7 +136,7 @@ def dbStat
 		dbStat[:skipped] += 1 if path.skipped?
 		
 		dbStat[:withoutBpm] += 1 if path.withoutBpm?
-		dbStat[:canBeCopied] += 1 if path.canBeCopied?
+		dbStat[:canBeAdded] += 1 if path.canBeAdded?
 	end
 	dbStat
 end
@@ -179,7 +179,7 @@ class String
 	def withoutBpm?
 		self.exists? and !self.dir? and !self.skipped? and !self.beatless? and !self.bpmOk?
 	end
-	def canBeCopied?
+	def canBeAdded?
 		self.exists? and !self.dir? and !self.skipped? and (self.bpmOk? or self.beatless?)
 	end
 end
@@ -418,7 +418,7 @@ end
 def mySystem *args
 # two purposes:
 # 1. to allow trap INT in the main process when the child is running (ruby's own "system" does not allow this (ruby 1.8.7 cygwin))
-# 2. to ignore INT in the child so that the main could wait and exit at the proper moment (e.g. in 2-fill in copy loop it is when one file is done)
+# 2. to ignore INT in the child so that the main could wait and exit at the proper moment (e.g. in 2-fill in adding loop it is when one file is done)
 	if ! fork
 		trap 'INT', 'IGNORE'
 		exec *args

@@ -7,7 +7,7 @@ require 'lib.rb'
 
 rangeNeeded = 150..165      # нужный диапазон bpm
 rangeAllowed = [0.91, 1.19] # максимальный коефициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
-bestOnly = false            # только лучшие песни
+onlyBest = false            # только лучшие песни
 grep = nil
 maxNum = nil
 dndo = false
@@ -25,10 +25,10 @@ srand
 
 $options = <<e
 -r n-n   - needed bpm range
--n n     - maximum number of files to copy
--b       - copy only best songs
+-n n     - maximum number of files to add
+-ob      - add only best songs
 -dndo    - do not delete old - exit when no space left on player
-remaining argument will be used as regular expression and only matched files will be copied
+remaining argument will be used as regular expression and only matched files will be added
 e
 start(true) {
 	while ! ARGV.empty?
@@ -47,8 +47,8 @@ start(true) {
 				maxNum = $1.empty? ? ARGV.shift : $1
 				usage '-n should be a number' if maxNum !~ /^\d+$/
 				maxNum = maxNum.to_i
-			when '-b'
-				bestOnly = true
+			when '-ob'
+				onlyBest = true
 			when '-dndo'
 				dndo = true
 			else
@@ -58,27 +58,27 @@ start(true) {
 }
 
 puts
-filesToCopy = $db.keys.sort.select do |path|
-	ok = path.canBeCopied?
+filesToAdd = $db.keys.sort.select do |path|
+	ok = path.canBeAdded?
 	ok &&= path.match Regexp.new grep, Regexp::IGNORECASE if grep
-	ok &&= path.best? if bestOnly
+	ok &&= path.best? if onlyBest
 	ok
 end
-if grep or bestOnly
-	puts "----- regexp and/or -b was specified, #{filesToCopy.count} files matched -----"
-	filesToCopy.map {|f| puts f}
-	puts "----- regexp and/or -b was specified, #{filesToCopy.count} files matched -----"
+if grep or onlyBest
+	puts "----- regexp and/or -ob was specified, #{filesToAdd.count} files matched -----"
+	filesToAdd.map {|f| puts f}
+	puts "----- regexp and/or -ob was specified, #{filesToAdd.count} files matched -----"
 	puts
 end
 puts <<e
 target directory:        #$playerDir (#{playerFreeSpace})
 needed bpm range:        #{rangeNeeded.min}-#{rangeNeeded.max}
-num of files to copy:    #{maxNum ? maxNum : 'all'} of #{filesToCopy.count}
-only best songs:         #{bestOnly ? 'yes' : 'no'}
+num of files to add:     #{maxNum ? maxNum : 'all'} of #{filesToAdd.count}
+only best songs:         #{onlyBest ? 'yes' : 'no'}
 do not delete old:       #{dndo ? 'yes' : ''}
 regular expression:      #{grep ? grep : 'none'}
 e
-usage 'no files to process' if filesToCopy.empty?
+usage 'no files to process' if filesToAdd.empty?
 puts
 exit if ! askYesNo 'is this correct? start main program?'
 puts
@@ -92,7 +92,7 @@ puts
 
 # main program
 
-log 'preparing for copy loop'
+log 'preparing for adding loop'
 
 tooLong = {}
 unsuitable = {}
@@ -224,14 +224,14 @@ rmBecomeXXX 'out of range', becomeOutOfRange
 
 # main loop
 
-log 'copy loop'
-filesToCopy.shuffle.each_with_index do |f, i|
+log 'adding loop'
+filesToAdd.shuffle.each_with_index do |f, i|
 	if added.count == maxNum
-		log "number of copied files has reached the specified maximum #{maxNum}, exit copy loop"
+		log "number of added files has reached the specified maximum #{maxNum}, exit adding loop"
 		break
 	end
 
-	log "doing file #{i+1} of #{filesToCopy.count} (added #{added.count}" + (maxNum ? " of #{maxNum}" : '') + "): #{f}"
+	log "doing file #{i+1} of #{filesToAdd.count} (added #{added.count}" + (maxNum ? " of #{maxNum}" : '') + "): #{f}"
 	
 	if $db[f][:inPlayer]
 		log 'already in player'
@@ -321,7 +321,7 @@ trap 'INT', intTrap
 	
 	
 	
-	# copy file
+	# add file to the player
 	noSpace = false
 	while true
 		log "copying (#{File.size(srcFile)/1024} Kb)"
@@ -353,12 +353,12 @@ trap 'INT', intTrap
 				# best - later
 				a.best? and !b.best? and next ba
 				!a.best? and b.best? and next ab
-				# nonexistent - later (i.e. it was probably added from another machine so on this machine I probably prefer to keep it in player)
+				# nonexistent - later (it was probably added from another machine so on this machine I probably prefer to keep it in player)
 				a.exists? and !b.exists? and next ab
 				!a.exists? and b.exists? and next ba
-				# if file in filesToCopy - later (i.e. now it was not added yet, but later can be, so it looks logically to wait to delete it)
-				filesToCopy.include?(a) and !filesToCopy.include?(b) and next ba
-				!filesToCopy.include?(a) and filesToCopy.include?(b) and next ab
+				# if file in filesToAdd - later (now it was not added yet, but later can be, so it looks logically to wait to delete it)
+				filesToAdd.include?(a) and !filesToAdd.include?(b) and next ba
+				!filesToAdd.include?(a) and filesToAdd.include?(b) and next ab
 				# finally by date
 				$db[a][:inPlayer][:mtime] ||= File.mtime "#$playerDir/#{$db[a][:inPlayer][:name]}"
 				$db[b][:inPlayer][:mtime] ||= File.mtime "#$playerDir/#{$db[b][:inPlayer][:name]}"
@@ -369,7 +369,7 @@ trap 'INT', intTrap
 				break
 			end
 			next if oldDeleted
-			wrn 'no old files left, can not free space any more, stop copy loop'
+			wrn 'no old files left, can not free space any more, stop adding loop'
 			noSpace = true
 			break
 		end
@@ -378,7 +378,7 @@ trap 'INT', intTrap
 
 
 	execTime = Time.now - $stat[:startedAt]
-	log "file done, copy loop statistics:
+	log "file done, statistics:
                time:    #{execTime.round} seconds
                deleted: #{$deleted.count} files / #{$stat[:sizeDeleted]/1024/1024} Mb
                added:   #{added.count} files / #{$stat[:sizeAdded]/1024/1024} Mb
