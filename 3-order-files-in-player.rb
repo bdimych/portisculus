@@ -72,6 +72,25 @@ result = aip.insertEvenly(best).insertEvenly(beatless)
 
 
 
+# оказалось что при перемещении может возникнуть NOSPACE и получается что половина перемещены а половина нет и приходится вручную перемещать назад и править alreadyInPlayer.txt
+# поэтому надо ну путь хотя бы 100К свободных (и не забыть + размер alreadyInPlayer.txt)
+
+log 'check free space'
+
+begin
+	FileUtils.cp "#$playerDir/alreadyInPlayer.txt", "#$playerDir/checkFreeSpace.txt"
+	File.open "#$playerDir/checkFreeSpace.txt", 'a' do |fh|
+		fh.write "123456789\n"*10000
+	end
+rescue Errno::ENOSPC
+	raise "free space on player is too small and moving files may cause problems so WILL STOP NOW! Free some space and retry"
+ensure
+	File.delete "#$playerDir/checkFreeSpace.txt"
+end
+
+
+
+
 
 
 log 'applying order'
