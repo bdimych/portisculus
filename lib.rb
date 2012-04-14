@@ -32,6 +32,24 @@ raise 'could not run mplayer' if ! system('mplayer >/dev/null')
 
 
 
+def lsHeadTail dir
+	ls = %x(ls '#{dir}').split "\n"
+	puts "[#{dir}:"
+	if ls.empty?
+		puts 'the directory is empty'
+	else
+		if ls.count <= 10
+			ls.each {|f| puts "  #{f}"}
+		else
+			for i in 0..ls.count-1
+				puts "  #{ls[i]}" if i < 5 or i > ls.count-6
+				puts '  ...' if i == 5
+			end
+		end
+	end
+	puts ']'
+end
+
 def ARGV.getDbFile
 	i = self.index '-dbf'
 	usage '-dbf must be specified' if ! i
@@ -44,22 +62,23 @@ def ARGV.getDbFile
 	log "database file #$dbFile"
 end
 
-def ARGV.getPlayerDir
+def ARGV.getPlayerRootDir
 	i = self.index '-prd'
 	usage '-prd must be specified' if ! i
 	
 	prd = Pathname.new(self.slice!(i, 2)[1]).cleanpath.to_s
 	usage "-prd \"#{prd}\" does not exist" if ! File.directory? prd
-	log "player root directory #{prd}"
-	
+	log "player root directory:"
+	lsHeadTail prd
+	prd
+end
+
+def determinePlayerDir prd
 	Dir.entries(prd).each do |d|
 		if File.directory? "#{prd}/#{d}" and d =~ /^portisculus-\d+$/
 			$playerDir = "#{prd}/#{d}"
-			log "portisculus directory found, several first files:"
-			puts $playerDir
-			puts '---'
-			system "ls '#$playerDir' | head"
-			puts '---'
+			log "portisculus directory found:"
+			lsHeadTail $playerDir
 			exit if ! askYesNo 'is this directory correct?'
 		end
 	end
@@ -88,10 +107,11 @@ def start readInPlayer = false
 	log "#{File.basename $0} started"
 	
 	ARGV.getDbFile
-	ARGV.getPlayerDir if readInPlayer
+	prd = ARGV.getPlayerRootDir if readInPlayer
 
 	yield if block_given?
 	
+	determinePlayerDir prd if readInPlayer
 	readDb
 	readAlreadyInPlayer if readInPlayer
 end
