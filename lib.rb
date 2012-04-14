@@ -33,8 +33,8 @@ raise 'could not run mplayer' if ! system('mplayer >/dev/null')
 
 
 def lsHeadTail dir
-	ls = %x(ls '#{dir}').split "\n"
-	puts "[#{dir}:"
+	ls = Dir.entries(dir).select{|f| f != '.' and f != '..'}.sort
+	puts "[#{dir}:\ntotal #{ls.count}:"
 	if ls.empty?
 		puts 'the directory is empty'
 	else
