@@ -5,10 +5,10 @@ require 'lib.rb'
 
 
 
-rangeNeeded = 150..165      # нужный диапазон bpm
+rangeNeeded = 155..170      # нужный диапазон bpm
 rangeAllowed = [0.91, 1.19] # максимальный коефициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
-onlyBest = false            # только лучшие песни
-grep = nil
+$onlyBest = false           # только лучшие песни
+$grep = nil
 maxNum = nil
 dndo = false
 
@@ -27,7 +27,7 @@ $options = <<e
 -r n-n   - needed bpm range
 -n n     - maximum number of files to add
 -ob      - add only best songs
--dndo    - do not delete old - exit when no space left on player
+-dndo    - do not delete old i.e. exit at once when no space is left on player
 remaining argument will be used as regular expression and only matched files will be added
 e
 start(true) {
@@ -48,23 +48,31 @@ start(true) {
 				usage '-n should be a number' if maxNum !~ /^\d+$/
 				maxNum = maxNum.to_i
 			when '-ob'
-				onlyBest = true
+				$onlyBest = true
 			when '-dndo'
 				dndo = true
 			else
-				grep = a
+				$grep = a
 		end
 	end
+	usage '-dndo and -ob may not be specified together' if dndo and $onlyBest
 }
 
-puts
-filesToAdd = $db.keys.sort.select do |path|
-	ok = path.canBeAdded?
-	ok &&= path.match Regexp.new grep, Regexp::IGNORECASE if grep
-	ok &&= path.best? if onlyBest
-	ok
+def filtered?
+	$grep or $onlyBest
 end
-if grep or onlyBest
+class String
+	def matchToFilter?
+		return false if $onlyBest and ! self.best?
+		return false if $grep and ! self.match Regexp.new $grep, Regexp::IGNORECASE
+		return true
+	end
+end
+filesToAdd = $db.keys.sort.select do |path|
+	path.canBeAdded? and (! filtered? or path.matchToFilter?)
+end
+puts
+if filtered?
 	puts "----- regexp and/or -ob was specified, #{filesToAdd.count} files matched -----"
 	filesToAdd.map {|f| puts f}
 	puts "----- regexp and/or -ob was specified, #{filesToAdd.count} files matched -----"
@@ -74,9 +82,9 @@ puts <<e
 target directory:        #$playerDir (#{playerFreeSpace})
 needed bpm range:        #{rangeNeeded.min}-#{rangeNeeded.max}
 num of files to add:     #{maxNum ? maxNum : 'all'} of #{filesToAdd.count}
-only best songs:         #{onlyBest ? 'yes' : 'no'}
+only best songs:         #{$onlyBest ? 'yes' : 'no'}
 do not delete old:       #{dndo ? 'yes' : ''}
-regular expression:      #{grep ? grep : 'none'}
+regular expression:      #{$grep ? $grep : 'none'}
 e
 usage 'no files to process' if filesToAdd.empty?
 puts
@@ -346,6 +354,7 @@ trap 'INT', intTrap
 			log 'will try to delete some old file'
 			oldDeleted = false
 			$db.keys.select do |ff|
+				return false if filtered? and ff.matchToFilter? # i.e. if filter(s) was specified the DO NOT DELETE files which match to the filter
 				$db[ff][:inPlayer] and ! added.include? ff
 			end.sort do |a, b|
 				ab = -1; ba = 1;
