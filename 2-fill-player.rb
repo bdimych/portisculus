@@ -343,6 +343,7 @@ trap 'INT', intTrap
 			added[f] = File.size srcFile
 			$stat[:sizeAdded] += File.size srcFile
 			break
+			
 		rescue Errno::ENOSPC
 			FileUtils.rm trgFile # cleanup _is_required_ else next FileUtils.cp can get troubles with this partially copied file permissions
 			wrn 'NO SPACE LEFT'
@@ -354,7 +355,7 @@ trap 'INT', intTrap
 			log 'will try to delete some old file'
 			oldDeleted = false
 			$db.keys.select do |ff|
-				return false if filtered? and ff.matchToFilter? # i.e. if filter(s) was specified the DO NOT DELETE files which match to the filter
+				next false if filtered? and ff.matchToFilter? # i.e. if filter(s) was specified then DO NOT DELETE files which match to the filter
 				$db[ff][:inPlayer] and ! added.include? ff
 			end.sort do |a, b|
 				ab = -1; ba = 1;
@@ -382,6 +383,7 @@ trap 'INT', intTrap
 			noSpace = true
 			break
 		end
+		
 	end
 
 
