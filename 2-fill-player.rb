@@ -5,7 +5,7 @@ require 'lib.rb'
 
 
 
-rangeNeeded = 150..160      # нужный диапазон bpm
+rangeNeeded = 152..162      # нужный диапазон bpm
 rangeAllowed = [0.91, 1.19] # максимальный коефициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
 $onlyBest = false           # только лучшие песни
 $grep = nil
@@ -102,10 +102,11 @@ puts
 
 log 'preparing for adding loop'
 
-tooLong = {}
-unsuitable = {}
 added = {}
 $deleted = {}
+unsuitable = {}
+tooLong = {}
+lameDecodeProblem = {}
 $stat = {
 	:sizeDeleted => 0,
 	:sizeAdded => 0,
@@ -163,6 +164,12 @@ at_exit {
 	puts "unsuitable #{unsuitable.count}:"
 	unsuitable.keys.sort.each do |f|
 		puts "#{f}: #{unsuitable[f].inspect}"
+	end
+	puts
+
+	puts "lameDecodeProblem #{lameDecodeProblem.count}:"
+	lameDecodeProblem.keys.sort.each do |f|
+		puts "#{f}: #{lameDecodeProblem[f]}"
 	end
 	puts
 
@@ -309,7 +316,11 @@ intTrap = trap 'INT', 'DEFAULT'
 							# но ещё не исправлен (2012-04-03-03-22-50 версия lame 3.99.5)
 							#
 							# поэтому вот ещё простейшая проверка на размер
-		raise 'tmp-decoded.wav is too small, probably lame failed' if 100000 > File.size('tmp-decoded.wav')
+		if 100000 > File.size('tmp-decoded.wav')
+			wrn 'tmp-decoded.wav is too small, probably lame failed'
+			lameDecodeProblem[f] = File.size('tmp-decoded.wav')
+			next
+		end
 		
 		log (cmd = %W(soundstretch tmp-decoded.wav tmp-stretched.wav -tempo=#{percent})).join ' '
 		raise 'soundstretch failed' if ! system *cmd
