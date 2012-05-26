@@ -5,8 +5,8 @@ require 'lib.rb'
 
 
 
-rangeNeeded = 152..162      # нужный диапазон bpm
-rangeAllowed = [0.91, 1.19] # максимальный коефициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
+rangeNeeded = 147..157      # нужный диапазон bpm
+rangeAllowed = [0.91, 1.19] # максимальный коэфициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
 $onlyBest = false           # только лучшие песни
 $grep = nil
 maxNum = nil
@@ -143,31 +143,31 @@ at_exit {
 	log "------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------"
 	puts
 
-	puts "deleted #{$deleted.count}:"
+	puts "#{$deleted.count} deleted:"
 	$deleted.keys.sort.each do |f|
 		puts "#{f}: #{sprintf '%.1f', $deleted[f].to_f/1024/1024} Mb"
 	end
 	puts
 
-	puts "added #{added.count}:"
+	puts "#{added.count} added (#{added.keys.count{|ff| ff =~ /^#$playerDir/}} recodedFromThePlayerDirItself):"
 	added.keys.sort.each do |f|
 		puts "#{f}: #{sprintf '%.1f', added[f].to_f/1024/1024} Mb"
 	end
 	puts
 
-	puts "tooLong #{tooLong.count}:"
+	puts "#{tooLong.count} tooLong:"
 	tooLong.keys.sort.each do |f|
 		puts "#{f}: #{sec_min_sec tooLong[f]}"
 	end
 	puts
 	
-	puts "unsuitable #{unsuitable.count}:"
+	puts "#{unsuitable.count} unsuitable:"
 	unsuitable.keys.sort.each do |f|
 		puts "#{f}: #{unsuitable[f].inspect}"
 	end
 	puts
 
-	puts "lameDecodeProblem #{lameDecodeProblem.count}:"
+	puts "#{lameDecodeProblem.count} lameDecodeProblem:"
 	lameDecodeProblem.keys.sort.each do |f|
 		puts "#{f}: #{lameDecodeProblem[f]}"
 	end
@@ -231,7 +231,24 @@ def rmBecomeXXX xxx, arr
 	end
 end
 rmBecomeXXX 'skipped', becomeSkipped
-rmBecomeXXX 'out of range', becomeOutOfRange
+rmBecomeXXX 'out of range', becomeOutOfRange if ! filtered? # если filtered? то те которые out of range удалять НЕ НАДО - их 3-order сдвинет назад
+
+
+
+
+# если задан фильтр то подготовить пережатие на плеере
+
+if filtered?
+	log 'search player for Nonexistent Matched and Out-Of-Range songs'
+	$db.keys.each do |f|
+		if $db[f][:inPlayer] and f.matchToFilter? and !f.exists? and !f.beatless? and !rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
+			path = "#$playerDir/#{$db[f][:inPlayer][:name]}"
+			log "NMOOR found #{path}"
+			dbSet path, :bpm, $db[f][:inPlayer][:bpm]
+			filesToAdd.push path
+		end
+	end
+end
 
 
 
@@ -403,7 +420,7 @@ trap 'INT', intTrap
 	log "file done, statistics:
                time:    #{execTime.round} seconds
                deleted: #{$deleted.count} files / #{$stat[:sizeDeleted]/1024/1024} Mb
-               added:   #{added.count} files / #{$stat[:sizeAdded]/1024/1024} Mb
+               added:   #{added.count} files / #{$stat[:sizeAdded]/1024/1024} Mb (#{added.keys.count{|ff| ff =~ /^#$playerDir/}} recodedFromThePlayerDirItself)
                speed:   #{sprintf '%.1f', added.count/execTime} files / #{sprintf '%.1f', $stat[:sizeAdded]/1024/1024/execTime} Mb per second
                player:  #{$db.values.count {|hash| hash[:inPlayer]}} files, #{playerFreeSpace}
 "
