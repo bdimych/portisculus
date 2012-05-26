@@ -279,6 +279,7 @@ def readAlreadyInPlayer
 	pdEntries = Dir.entries $playerDir
 	
 	knownNamesInPlayer = []
+	recodedFromThePlayerDirItself = []
 	notInDb = {}
 	if pdEntries.include? 'alreadyInPlayer.txt'
 		File.open(aipTxt).each do |line|
@@ -297,7 +298,11 @@ def readAlreadyInPlayer
 					}
 					knownNamesInPlayer.push nameInPlayer
 				elsif !$db[origPath]
-					notInDb[nameInPlayer] = origPath
+					if origPath == 'recodedFromThePlayerDirItself'
+						recodedFromThePlayerDirItself.push nameInPlayer
+					else
+						notInDb[nameInPlayer] = origPath
+					end
 				end
 			else
 				raise "could not parse line in the #{aipTxt}: \"#{line}\""
@@ -306,6 +311,14 @@ def readAlreadyInPlayer
 	end
 	
 	log "#{knownNamesInPlayer.count} known files in player, checking other files"
+
+	if ! recodedFromThePlayerDirItself.empty?
+		log 'deleting recodedFromThePlayerDirItself'
+		IO.popen 'xargs -0 rm -rv', 'w' do |pipe|
+			pipe.print recodedFromThePlayerDirItself.map{|nameInPlayer| "#$playerDir/#{nameInPlayer}"}.join "\0"
+		end
+		raise 'error rm recodedFromThePlayerDirItself' if $? != 0
+	end
 	
 	if ! notInDb.empty?
 		wrn "these #{notInDb.count} files are present in the alreadyInPlayer.txt but absent in the database:"
@@ -326,7 +339,7 @@ def readAlreadyInPlayer
 		end
 	end
 	
-	unknown = (pdEntries - %w[. .. alreadyInPlayer.txt tempDirForOrdering] - knownNamesInPlayer - notInDb.keys).map{|name| "#$playerDir/#{name}"}
+	unknown = (pdEntries - %w[. .. alreadyInPlayer.txt tempDirForOrdering] - knownNamesInPlayer - recodedFromThePlayerDirItself - notInDb.keys).map{|name| "#$playerDir/#{name}"}
 	if ! unknown.empty?
 		wrn "these #{unknown.count} files are not mentioned in the alreadyInPlayer.txt:"
 		puts '---'
@@ -354,7 +367,7 @@ def saveAlreadyInPlayer
 	log "saving #{aipTxt}"
 	lines = []
 	$db.each_pair do |f, hash|
-		lines.push "#{hash[:inPlayer][:name]} < #{f}" if hash[:inPlayer]
+		lines.push "#{hash[:inPlayer][:name]} < #{f =~ /^#$playerDir/ ? 'recodedFromThePlayerDirItself' : f}" if hash[:inPlayer]
 	end
 	File.open aipTxt, 'w' do |fh|
 		lines.sort.each do |l|
