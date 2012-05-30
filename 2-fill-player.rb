@@ -5,11 +5,11 @@ require 'lib.rb'
 
 
 
-rangeNeeded = 147..157      # нужный диапазон bpm
-rangeAllowed = [0.91, 1.19] # максимальный коэфициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
-$onlyBest = false           # только лучшие песни
+rangeNeeded = 147..157          # нужный диапазон bpm
+rangeCoefAllowed = [0.91, 1.19] # максимальный коэфициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
+$onlyBest = false               # только лучшие песни
 $grep = nil
-maxNum = nil
+maxNumOfFilesToAdd = nil
 dndo = false
 
 
@@ -44,9 +44,9 @@ start(true) {
 					usage 'range is specified incorrectly - should be "number-number"'
 				end
 			when /-n(.*)/
-				maxNum = $1.empty? ? ARGV.shift : $1
-				usage '-n should be a number' if maxNum !~ /^\d+$/
-				maxNum = maxNum.to_i
+				maxNumOfFilesToAdd = $1.empty? ? ARGV.shift : $1
+				usage '-n should be a number' if maxNumOfFilesToAdd !~ /^\d+$/
+				maxNumOfFilesToAdd = maxNumOfFilesToAdd.to_i
 			when '-ob'
 				$onlyBest = true
 			when '-dndo'
@@ -81,7 +81,7 @@ end
 puts <<e
 target directory:        #$playerDir (#{playerFreeSpace})
 needed bpm range:        #{rangeNeeded.min}-#{rangeNeeded.max}
-num of files to add:     #{maxNum ? maxNum : 'all'} of #{filesToAdd.count}
+num of files to add:     #{maxNumOfFilesToAdd ? maxNumOfFilesToAdd : 'all'} of #{filesToAdd.count}
 only best songs:         #{$onlyBest ? 'yes' : 'no'}
 do not delete old:       #{dndo ? 'yes' : ''}
 regular expression:      #{$grep ? $grep : 'none'}
@@ -258,12 +258,12 @@ end
 
 log 'adding loop'
 filesToAdd.shuffle.each_with_index do |f, i|
-	if added.count == maxNum
-		log "number of added files has reached the specified maximum #{maxNum}, exit adding loop"
+	if added.count == maxNumOfFilesToAdd
+		log "number of added files has reached the specified maximum #{maxNumOfFilesToAdd}, exit adding loop"
 		break
 	end
 
-	log "doing file #{i+1} of #{filesToAdd.count} (added #{added.count}" + (maxNum ? " of #{maxNum}" : '') + "): #{f}"
+	log "doing file #{i+1} of #{filesToAdd.count} (added #{added.count}" + (maxNumOfFilesToAdd ? " of #{maxNumOfFilesToAdd}" : '') + "): #{f}"
 	
 	if $db[f][:inPlayer]
 		log 'already in player'
@@ -283,8 +283,8 @@ filesToAdd.shuffle.each_with_index do |f, i|
 			newBpm = origBpm
 		else
 			log 'out of the needed range, will calculate new'
-			allowedMin = (origBpm * rangeAllowed[0]).to_i
-			allowedMax = (origBpm * rangeAllowed[1]).to_i
+			allowedMin = (origBpm * rangeCoefAllowed[0]).to_i
+			allowedMax = (origBpm * rangeCoefAllowed[1]).to_i
 			log "allowed range: #{allowedMin}-#{allowedMax}"
 			allowedBpmsArr = rangeNeeded.to_a & Range.new(allowedMin, allowedMax).to_a
 			if allowedBpmsArr.empty?
