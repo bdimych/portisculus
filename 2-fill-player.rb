@@ -5,7 +5,7 @@ require 'lib.rb'
 
 
 
-rangeNeeded = 147..157          # нужный диапазон bpm
+$rangeNeeded = 146..155         # нужный диапазон bpm
 rangeCoefAllowed = [0.91, 1.19] # максимальный коэфициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
 $onlyBest = false               # только лучшие песни
 $grep = nil
@@ -36,8 +36,8 @@ start(true) {
 			when /-r(.*)/
 				val = $1.empty? ? ARGV.shift : $1
 				if val =~ /^(\d+)-(\d+)$/
-					rangeNeeded = Range.new $1.to_i, $2.to_i
-					if rangeNeeded.min == nil
+					$rangeNeeded = Range.new $1.to_i, $2.to_i
+					if $rangeNeeded.min == nil
 						usage 'first value in range is larger then the last'
 					end
 				else
@@ -80,7 +80,7 @@ if filtered?
 end
 puts <<e
 target directory:        #$playerDir (#{playerFreeSpace})
-needed bpm range:        #{rangeNeeded.min}-#{rangeNeeded.max}
+needed bpm range:        #{$rangeNeeded.min}-#{$rangeNeeded.max}
 num of files to add:     #{maxNumOfFilesToAdd ? maxNumOfFilesToAdd : 'all'} of #{filesToAdd.count}
 only best songs:         #{$onlyBest ? 'yes' : 'no'}
 do not delete old:       #{dndo ? 'yes' : ''}
@@ -204,7 +204,7 @@ $db.keys.each do |f|
 	if $db[f][:inPlayer]
 		if f.skipped?
 			becomeSkipped.push f
-		elsif $db[f][:inPlayer][:bpm]!='BLS' and !rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
+		elsif $db[f][:inPlayer][:bpm]!='BLS' and !$rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
 			becomeOutOfRange.push f
 		end
 	end
@@ -241,7 +241,7 @@ rmBecomeXXX 'out of range', becomeOutOfRange if ! filtered? # если filtered?
 if filtered?
 	log 'search player for Nonexistent Matched and Out-Of-Range songs'
 	$db.keys.each do |f|
-		if $db[f][:inPlayer] and f.matchToFilter? and !f.exists? and !f.beatless? and !rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
+		if $db[f][:inPlayer] and f.matchToFilter? and !f.exists? and !f.beatless? and !$rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
 			path = "#$playerDir/#{$db[f][:inPlayer][:name]}"
 			log "NMOOR found #{path}"
 			dbSet path, :bpm, $db[f][:inPlayer][:bpm]
@@ -278,7 +278,7 @@ filesToAdd.shuffle.each_with_index do |f, i|
 	else
 		origBpm = $db[f][:bpm].to_i
 		log "original bpm #{origBpm}"
-		if rangeNeeded.include? origBpm
+		if $rangeNeeded.include? origBpm
 			log 'appropriate, will copy unchanged'
 			newBpm = origBpm
 		else
@@ -286,7 +286,7 @@ filesToAdd.shuffle.each_with_index do |f, i|
 			allowedMin = (origBpm * rangeCoefAllowed[0]).to_i
 			allowedMax = (origBpm * rangeCoefAllowed[1]).to_i
 			log "allowed range: #{allowedMin}-#{allowedMax}"
-			allowedBpmsArr = rangeNeeded.to_a & Range.new(allowedMin, allowedMax).to_a
+			allowedBpmsArr = $rangeNeeded.to_a & Range.new(allowedMin, allowedMax).to_a
 			if allowedBpmsArr.empty?
 				wrn 'allowed and needed ranges do not intersect, will list such unsuitable songs at exit'
 				unsuitable[f] = [origBpm, allowedMin, allowedMax]
