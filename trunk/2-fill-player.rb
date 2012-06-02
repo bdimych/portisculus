@@ -23,51 +23,24 @@ srand
 
 # get options and ask for confirmation
 
-$options = <<e
--r n-n   - needed bpm range
--n n     - maximum number of files to add
--ob      - add only best songs
--dndo    - do not delete old i.e. exit at once when no space is left on player
-remaining argument will be used as regular expression and only matched files will be added
-e
-start(true) {
+$options = <<eos
+-n n - maximum number of files to add
+-dndo - do not delete old i.e. exit at once when no space is left on player
+eos
+start(true, true) {
 	while ! ARGV.empty?
 		case a = ARGV.shift
-			when /-r(.*)/
-				val = $1.empty? ? ARGV.shift : $1
-				if val =~ /^(\d+)-(\d+)$/
-					$rangeNeeded = Range.new $1.to_i, $2.to_i
-					if $rangeNeeded.min == nil
-						usage 'first value in range is larger then the last'
-					end
-				else
-					usage 'range is specified incorrectly - should be "number-number"'
-				end
 			when /-n(.*)/
 				maxNumOfFilesToAdd = $1.empty? ? ARGV.shift : $1
 				usage '-n should be a number' if maxNumOfFilesToAdd !~ /^\d+$/
 				maxNumOfFilesToAdd = maxNumOfFilesToAdd.to_i
-			when '-ob'
-				$onlyBest = true
 			when '-dndo'
 				dndo = true
-			else
-				$grep = a
 		end
 	end
 	usage '-dndo and -ob may not be specified together' if dndo and $onlyBest
 }
 
-def filtered?
-	$grep or $onlyBest
-end
-class String
-	def matchToFilter?
-		return false if $onlyBest and ! self.best?
-		return false if $grep and ! self.match Regexp.new $grep, Regexp::IGNORECASE
-		return true
-	end
-end
 filesToAdd = $db.keys.sort.select do |path|
 	path.canBeAdded? and (! filtered? or path.matchToFilter?)
 end

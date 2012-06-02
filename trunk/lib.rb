@@ -73,6 +73,31 @@ def ARGV.getPlayerRootDir
 	prd
 end
 
+def ARGV.getFilterOptions
+	newArgv = []
+	while ! self.empty?
+		case a = self.shift
+			when '-re'
+				$grep = self.shift
+			when /-r(.*)/
+				r = $1.empty? ? self.shift : $1
+				if r =~ /^(\d+)-(\d+)$/
+					$rangeNeeded = Range.new $1.to_i, $2.to_i
+					if $rangeNeeded.min == nil
+						usage 'first value in range is larger then the last'
+					end
+				else
+					usage 'range is specified incorrectly - should be "number-number"'
+				end
+			when '-ob'
+				$onlyBest = true
+			else
+				newArgv.push a
+		end
+	end
+	self.replace newArgv
+end
+
 def determinePlayerDir prd
 	Dir.entries(prd).each do |d|
 		if File.directory? "#{prd}/#{d}" and d =~ /^portisculus-\d+$/
@@ -99,15 +124,21 @@ def usage errorMsg = nil
 	exit errorMsg ? 1 : 0
 end
 
-def start readInPlayer = false
+def start readInPlayer = false, optionsForFilter = false
 	$options = "-dbf /bpm/database/file.txt (required)\n#$options"
 	$options = "-prd /player/root/directory (required)\n#$options" if readInPlayer
+	$options += <<eos if optionsForFilter
+-r n-n - needed bpm range
+-ob - add only best songs
+-re regexp - add only matched files
+eos
 	usage if ARGV.include? '--help'
 
 	log "#{File.basename $0} started"
 	
 	ARGV.getDbFile
 	prd = ARGV.getPlayerRootDir if readInPlayer
+	ARGV.getFilterOptions
 
 	yield if block_given?
 	
@@ -115,6 +146,19 @@ def start readInPlayer = false
 	readDb
 	readAlreadyInPlayer if readInPlayer
 end
+
+def filtered?
+	$grep or $onlyBest
+end
+
+class String
+	def matchToFilter?
+		return false if $onlyBest and ! self.best?
+		return false if $grep and ! self.match Regexp.new $grep, Regexp::IGNORECASE
+		return true
+	end
+end
+
 
 
 
