@@ -5,27 +5,41 @@ require 'lib.rb'
 
 
 
-start true
+start true, true
 
 
 
 
-log 'filling arrays of songs'
+log 'filling lists of songs'
 
 srand
 
-aip = []
-best = []
-beatless = []
+$lists = {
+	:filtered => {
+		:best => [],
+		:beatless => [],
+		:common => [],
+		:result => []
+	},
+	:rest => {
+		:best => [],
+		:beatless => [],
+		:common => [],
+		:result => []
+	}
+}
+
 $db.keys.shuffle.each do |f|
+	target = (filtered? and f.matchToFilter?) ? $lists[:filtered] : $lists[:rest]
 	if $db[f][:inPlayer]
 		if f.best?
-			best.push $db[f][:inPlayer]
+			target = target[:best]
 		elsif f.beatless?
-			beatless.push $db[f][:inPlayer]
+			target = target[:beatless]
 		else
-			aip.push $db[f][:inPlayer]
+			target = target[:common]
 		end
+		target.push $db[f][:inPlayer]
 	end
 end
 
@@ -36,42 +50,48 @@ end
 
 log 'calculating new order'
 
-for i in 0..(aip.count-3)
-	newNextInd = i + 1
-	maxDiff = 0
-	for j in (i+1)..(i+5)
-		break if j == aip.count
-		diff = aip[i][:bpm].to_i - aip[j][:bpm].to_i
-		if diff.abs > maxDiff.abs
-			maxDiff = diff
-			newNextInd = j
+def insertEvenly key, base, ins, res
+	log "insertEvenly #{key}, #{base}, #{ins}, #{res}"
+	base = $lists[key][base]
+	ins = $lists[key][ins]
+	res = $lists[key][res]
+	interval = (base.count.to_f/(ins.count+1)).round
+	log "insertEvenly begin: base.count: #{base.count}, ins.count: #{ins.count}, interval: #{interval}, res.count: #{res.count}"
+	new = []
+	for i in 0..(base.count-1)
+		new.push base[i]
+		if i > 0 and (i+1)%interval == 0 and ! ins.empty?
+			new.push ins.shift
 		end
 	end
-	aip[i+1], aip[newNextInd] = aip[newNextInd], aip[i+1]
+	res.replace(new + ins)
+	log "insertEvenly end: base.count: #{base.count}, ins.count: #{ins.count}, interval: #{interval}, res.count: #{res.count}"
 end
 
-class Array
-	def insertEvenly ins
-		interval = (self.count.to_f/(ins.count+1)).round
-		log "insertEvenly: self.count: #{self.count}, ins.count: #{ins.count}, interval: #{interval}"
-		new = []
-		for i in 0..(self.count-1)
-			new.push self[i]
-			if i > 0 and (i+1)%interval == 0 and ! ins.empty?
-				new.push ins.shift
+def distributeByBpm key, subkey
+	log "distributeByBpm #{key}, #{subkey}"
+	arr = $lists[key][subkey]
+	for i in 0..(arr.count-3)
+		newNextInd = i + 1
+		maxDiff = 0
+		for j in (i+1)..(i+5)
+			break if j == arr.count
+			diff = arr[i][:bpm].to_i - arr[j][:bpm].to_i
+			if diff.abs > maxDiff.abs
+				maxDiff = diff
+				newNextInd = j
 			end
 		end
-		raise 'something went wrong: "ins" array is not empty after inserting' if ! ins.empty?
-		new
+		arr[i+1], arr[newNextInd] = arr[newNextInd], arr[i+1]
 	end
 end
 
-result = aip.clone
-%w(best beatless).each do |name|
-	expr = "result = result.insertEvenly(#{name})"
-	log expr
-	eval expr
+[:filtered, :rest].each do |key|
+	insertEvenly key, :common, :best, :result
+	distributeByBpm key, :result
+	insertEvenly key, :result, :beatless, :result
 end
+result = $lists[:filtered][:result] + $lists[:rest][:result]
 
 
 

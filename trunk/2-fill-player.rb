@@ -153,7 +153,15 @@ at_exit {
 	end
 	puts
 
-	log "------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------\n\n\n"
+	log "------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------\n\n"
+	
+	if askYesNo '2-fill finished, run 3-order?'
+		cmd = %W(./3-order-files-in-player.rb -dbf #$dbFile -prd #{File.dirname $playerDir} #{"-r#{$rangeNeeded.min}-#{$rangeNeeded.max}"})
+		cmd.push '-ob' if $onlyBest
+		cmd.push '-re', $grep if $grep
+		puts "\n'#{cmd.join "' '"}'"
+		exec *cmd
+	end
 }
 
 def rmInPlayer f
