@@ -38,9 +38,11 @@ $db.keys.sort.each do |dir|
 		dbAdd f
 	end
 end
-$db.keys.sort.each do |f|
-	next if !f.exists? or f.dir? or f.skipped? or f.beatless? or f.bpmOk? or $db[f][:bpm] =~ /soundstretchFailed|byhands/
-	log "doing file #{f}"
+pass1 = $db.keys.sort.select do |f|
+	f.exists? and !f.dir? and !f.skipped? and !f.beatless? and !f.bpmOk? and $db[f][:bpm] !~ /soundstretchFailed|byhands/
+end
+pass1.each_with_index do |f, i|
+	log "doing file #{i+1} of #{pass1.count}: #{f}"
 	
 	FileUtils.copy_entry f, './tmp.mp3', false, false, true
 	
@@ -74,14 +76,16 @@ writeDb
 # prompt for second pass
 
 puts "\nfirst pass done"
-pass2 = [0, (dbStat)[:withoutBpm]]
+pass2 = $db.keys.sort.select do |f|
+	f.withoutBpm?
+end
 begin
-	if pass2[1] == 0
+	if pass2.count == 0
 		puts 'all existent nonskipped files has bpm'
 		exit
 	else
 		while true
-			case readChar "#{pass2[1]} files remains without bpm, count them by hands (Y, n, (l)ist)? ", [?y, ?n, ?l]
+			case readChar "#{pass2.count} files remains without bpm, count them by hands (Y, n, (l)ist)? ", [?y, ?n, ?l]
 				when ?y
 					break
 				when ?n
@@ -107,11 +111,8 @@ end
 
 log 'second pass - count by hands'
 puts
-$db.keys.sort.each do |f|
-	next if ! f.withoutBpm?
-
-	pass2[0] += 1
-	progress = "Second pass: #{pass2[0]} of #{pass2[1]}"
+pass2.each_with_index do |f, i|
+	progress = "Second pass: #{i+1} of #{pass2.count}"
 	puts ".#{'-' * (f.length+8+6)}."
 	puts "|    #{progress}#{' ' * (f.length+4+6-progress.length)}|"
 	puts "|    File: #{f}    |"
