@@ -154,14 +154,14 @@ at_exit {
 	puts
 
 	log "------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------\n\n"
-	
-	if askYesNo '2-fill finished, run 3-order?'
-		cmd = %W(./3-order-files-in-player.rb -dbf #$dbFile -prd #{File.dirname $playerDir} #{"-r#{$rangeNeeded.min}-#{$rangeNeeded.max}"})
+
+	cmd = %W(./3-order-files-in-player.rb -dbf #$dbFile -prd #{File.dirname $playerDir})
+	if filtered?
+		cmd.push "-r#{$rangeNeeded.min}-#{$rangeNeeded.max}"
 		cmd.push '-ob' if $onlyBest
 		cmd.push '-re', $grep if $grep
-		puts "\n'#{cmd.join "' '"}'"
-		exec *cmd
 	end
+	exec *cmd if askYesNo "2-fill finished, do you want to run ['#{cmd.join "' '"}'] ?"
 }
 
 def rmInPlayer f
