@@ -150,7 +150,7 @@ eos
 			log "*#{' ' * (msg.length+10)}*"
 			log '*' * (msg.length+12)
 		end
-		$rangeNeeded = $rangeComLine
+		$rangeNeeded = $rangeComLine if $rangeComLine
 	end
 	ARGV.getDbFile
 	prd = ARGV.getPlayerRootDir if readInPlayer
