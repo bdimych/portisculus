@@ -53,7 +53,7 @@ if filtered?
 end
 puts <<e
 target directory:        #$playerDir (#{playerFreeSpace})
-needed bpm range:        #{$rangeNeeded.min}-#{$rangeNeeded.max}
+needed bpm range:        #{rangeStr $rangeNeeded}
 num of files to add:     #{maxNumOfFilesToAdd ? maxNumOfFilesToAdd : 'all'} of #{filesToAdd.count}
 only best songs:         #{$onlyBest ? 'yes' : 'no'}
 do not delete old:       #{dndo ? 'yes' : ''}
@@ -157,7 +157,6 @@ at_exit {
 
 	cmd = %W(./3-order-files-in-player.rb -dbf #$dbFile -prd #{File.dirname $playerDir})
 	if filtered?
-		cmd.push "-r#{$rangeNeeded.min}-#{$rangeNeeded.max}"
 		cmd.push '-ob' if $onlyBest
 		cmd.push '-re', $grep if $grep
 	end

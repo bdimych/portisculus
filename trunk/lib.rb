@@ -82,8 +82,8 @@ def ARGV.getFilterOptions
 			when /-r(.*)/
 				r = $1.empty? ? self.shift : $1
 				if r =~ /^(\d+)-(\d+)$/
-					$rangeNeeded = Range.new $1.to_i, $2.to_i
-					if $rangeNeeded.min == nil
+					$rangeComLine = Range.new $1.to_i, $2.to_i
+					if $rangeComLine.min == nil
 						usage 'first value in range is larger then the last'
 					end
 				else
@@ -136,9 +136,24 @@ eos
 
 	log "#{File.basename $0} started"
 	
+	if optionsForFilter
+		ARGV.getFilterOptions
+		if filtered?
+			msg = []
+			msg.push 'only best' if $onlyBest
+			msg.push "regexp: #$grep" if $grep
+			msg.push "bpm range: #{rangeStr $rangeNeeded} -> #{rangeStr $rangeComLine}" if $rangeComLine
+			msg = "filtered mode: #{msg.join ', '}"
+			log '*' * (msg.length+12)
+			log "*#{' ' * (msg.length+10)}*"
+			log "*     #{msg}     *"
+			log "*#{' ' * (msg.length+10)}*"
+			log '*' * (msg.length+12)
+		end
+		$rangeNeeded = $rangeComLine
+	end
 	ARGV.getDbFile
 	prd = ARGV.getPlayerRootDir if readInPlayer
-	ARGV.getFilterOptions
 
 	yield if block_given?
 	
@@ -149,6 +164,10 @@ end
 
 def filtered?
 	$grep or $onlyBest
+end
+
+def rangeStr r
+	"#{r.min}-#{r.max}" if r
 end
 
 class String
@@ -343,7 +362,7 @@ def readAlreadyInPlayer
 					knownNamesInPlayer.push nameInPlayer
 				elsif !$db[origPath]
 					if origPath == 'recodedFromThePlayerDirItself'
-						recodedFromThePlayerDirItself.push nameInPlayer
+						recodedFromThePlayerDirItself.push nameInPlayer if pdEntries.include? nameInPlayer
 					else
 						notInDb[nameInPlayer] = origPath
 					end
