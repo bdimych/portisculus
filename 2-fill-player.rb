@@ -136,7 +136,7 @@ at_exit {
 	
 	puts "#{unsuitable.count} unsuitable:"
 	unsuitable.keys.sort.each do |f|
-		puts "#{f}: #{unsuitable[f].inspect}"
+		puts "#{f}: #{unsuitable[f]}"
 	end
 	puts
 
@@ -269,7 +269,7 @@ filesToAdd.shuffle.each_with_index do |f, i|
 			allowedBpmsArr = $rangeNeeded.to_a & Range.new(allowedMin, allowedMax).to_a
 			if allowedBpmsArr.empty?
 				wrn 'allowed and needed ranges do not intersect, will list such unsuitable songs at exit'
-				unsuitable[f] = [origBpm, allowedMin, allowedMax]
+				unsuitable[f] = "[orig #{origBpm} -> allowed #{allowedMin}-#{allowedMax}]"
 				next
 			else
 				log "intersection: #{allowedBpmsArr[0]}-#{allowedBpmsArr[-1]}"
