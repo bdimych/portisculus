@@ -149,6 +149,8 @@ pass2.each_with_index do |f, i|
 				dbSet f, :flag, '='
 				msg = 'beatless'
 			end
+		when 'quit'
+			exit
 		else
 			raise 'unknown byhands result'
 	end
