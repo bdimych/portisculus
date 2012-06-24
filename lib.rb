@@ -468,9 +468,9 @@ end
 
 def readChar prompt, possibleChars = nil
 	intTrap = trap 'INT', 'DEFAULT'
-	sttySettingsBck = %x(stty -g).chomp
+	sttySettingsBck = %x(stty -g).chomp if STDIN.tty?
 	begin
-		system *%w(stty raw isig opost -echo)
+		system *%w(stty raw isig opost -echo) if STDIN.tty?
 		while true
 			print prompt
 			c = STDIN.getc
@@ -479,7 +479,7 @@ def readChar prompt, possibleChars = nil
 			return c if ! possibleChars or possibleChars.include? c
 		end
 	ensure
-		system 'stty', sttySettingsBck
+		system 'stty', sttySettingsBck if STDIN.tty?
 		trap 'INT', intTrap
 	end
 end
