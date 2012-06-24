@@ -5,7 +5,7 @@ require 'lib.rb'
 
 
 
-$rangeNeeded = 141..145         # нужный диапазон bpm
+$rangeNeeded = 144..149         # нужный диапазон bpm
 rangeCoefAllowed = [0.91, 1.19] # максимальный коэфициент на который можно менять bpm (по моим впечатлением больше 1.2 и меньше 0.9 песня уже слух корябит, становится непохожа на саму себя)
 $onlyBest = false               # только лучшие песни
 $grep = nil
@@ -100,22 +100,27 @@ def exitIfWasCtrlC
 end
 
 at_exit {
-	err = nil
+	# determine is there error
 	# http://stackoverflow.com/questions/1144066/ruby-at-exit-exit-status
+	err = nil
 	if $!.nil? || $!.is_a?(SystemExit) && $!.success?
 	else
 		if $!.is_a?(SystemExit)
 			err = "nonzero SystemExit: #{$!.status}"
 		else
-			err = 'probably exception - see below this block'
+			err = "exception: #{$!.inspect}"
 		end
 	end
 
+	# cosmetic
+	atExitLine = (err ? '!' : '-') * 30
+	atExitLine = "#{atExitLine} at_exit #{err ? "error!: #{err}" : 'ok'} #{atExitLine}"
 	puts
 	puts
-	log "------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------"
+	log atExitLine
 	puts
 
+	# print statistics
 	puts "#{$deleted.count} deleted:"
 	$deleted.keys.sort.each do |f|
 		puts "#{f}: #{sprintf '%.1f', $deleted[f].to_f/1024/1024} Mb"
@@ -146,6 +151,7 @@ at_exit {
 	end
 	puts
 
+	# saveAlreadyInPlayer if needed
 	if $deleted.empty? and added.empty?
 		log 'no files were deleted or added, no need to saveAlreadyInPlayer'
 	else
@@ -153,14 +159,17 @@ at_exit {
 	end
 	puts
 
-	log "------------------------------ at_exit: #{err ? "!!! ERROR !!! #{err}" : 'ok'} ------------------------------\n\n"
-
+	# ask to run 3-order
 	cmd = %W(./3-order-files-in-player.rb -dbf #$dbFile -prd #{File.dirname $playerDir})
 	if filtered?
 		cmd.push '-ob' if $onlyBest
 		cmd.push '-re', $grep if $grep
 	end
-	exec *cmd if askYesNo "2-fill finished, do you want to run ['#{cmd.join "' '"}'] ?"
+	exec *cmd if askYesNo "2-fill finished #{err ? "with error:\nerr: #{err}\n$! is #{$!.inspect}\n$@ is #{$@.inspect}" : 'correctly'}\n\ndo you want to run ['#{cmd.join "' '"}'] ?"
+	puts
+	
+	# cosmetic
+	log "#{atExitLine}\n\n"
 }
 
 def rmInPlayer f
@@ -333,7 +342,7 @@ trap 'INT', intTrap
 	# name in player
 	trgFile = "#$playerDir/0000-#{f.beatless? ? 'BLS' : newBpm}---#{File.basename f}"
 	log "target file #{trgFile}"
-	raise 'target file already exists' if File.file? trgFile # the probability is small, imho no need to do more code
+	raise "target file #{trgFile} already exists" if File.file? trgFile # the probability is small, imho no need to do more code
 	
 	
 	
