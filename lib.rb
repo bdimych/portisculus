@@ -79,6 +79,7 @@ def ARGV.getFilterOptions
 		case a = self.shift
 			when '-re'
 				$grep = self.shift
+				log "filter option: -re #$grep"
 			when /-r(.*)/
 				r = $1.empty? ? self.shift : $1
 				if r =~ /^(\d+)-(\d+)$/
@@ -86,11 +87,13 @@ def ARGV.getFilterOptions
 					if $rangeComLine.min == nil
 						usage 'first value in range is larger then the last'
 					end
+					log "filter option: -r #{rangeStr $rangeComLine}"
 				else
 					usage 'range is specified incorrectly - should be "number-number"'
 				end
 			when '-ob'
 				$onlyBest = true
+				log "filter option: -ob"
 			else
 				newArgv.push a
 		end
