@@ -502,7 +502,7 @@ end
 def checkSongLength file, tooLongHash
 	log 'checkSongLength'
 	msg = sec_min_sec(l = Mp3Info.new(file).length.round)
-	if l > 7*60
+	if l > 15*60
 		tooLongHash[file] = l
 		wrn "#{msg} - TOO LONG!, should be skipped, tooLongHash appended"
 		return nil
