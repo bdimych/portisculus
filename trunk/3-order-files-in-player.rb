@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-require 'lib.rb'
+require_relative 'lib.rb'
 
 
 
