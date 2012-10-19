@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-require 'lib.rb'
+require_relative 'lib.rb'
 
 
 
@@ -282,7 +282,7 @@ filesToAdd.shuffle.each_with_index do |f, i|
 				next
 			else
 				log "intersection: #{allowedBpmsArr[0]}-#{allowedBpmsArr[-1]}"
-				newBpm = allowedBpmsArr.choice
+				newBpm = allowedBpmsArr.sample
 			end
 		end
 	end
