@@ -1,3 +1,9 @@
+# VERY important for ruby 1.9
+Encoding.default_internal = Encoding.default_external = 'binary'
+
+
+
+
 require 'pathname'
 require 'fileutils'
 require 'mp3info'
