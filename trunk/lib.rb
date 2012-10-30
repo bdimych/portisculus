@@ -394,10 +394,10 @@ def readAlreadyInPlayer
 		end
 		puts '---'
 		wrn "these #{notInDb.count} files are present in the alreadyInPlayer.txt but absent in the database"
-		case readChar '(d)elete, do (n)ot delete, (E)xit ? ', [?e, ?d, ?n]
-			when ?e
+		case readChar '(d)elete, do (n)ot delete, (E)xit ? ', %w[e d n]
+			when 'e'
 				exit
-			when ?d
+			when 'd'
 				IO.popen 'xargs -0 rm -rv', 'w' do |pipe|
 					pipe.print notInDb.keys.map{|nameInPlayer| "#$playerDir/#{nameInPlayer}"}.join "\0"
 				end
@@ -414,10 +414,10 @@ def readAlreadyInPlayer
 		end
 		puts '---'
 		wrn "these #{unknown.count} files are not mentioned in the alreadyInPlayer.txt"
-		case readChar '(d)elete, do (n)ot delete, (E)xit ? ', [?e, ?d, ?n]
-			when ?e
+		case readChar '(d)elete, do (n)ot delete, (E)xit ? ', %w[e d n]
+			when 'e'
 				exit
-			when ?d
+			when 'd'
 				IO.popen 'xargs -0 rm -rv', 'w' do |pipe|
 					pipe.print unknown.join "\0"
 				end
@@ -477,8 +477,8 @@ def readChar prompt, possibleChars = nil
 		while true
 			print prompt
 			c = STDIN.getc
-			c = possibleChars[0] if possibleChars and c == 13 # Enter means default char
-			puts c == 27 ? '' : c.chr # 27 - escape makes terminal doing unwanted things
+			c = possibleChars[0] if possibleChars and c.ord == 13 # Enter means default char
+			puts c.ord == 27 ? '' : c # 27 - escape makes terminal doing unwanted things
 			return c if ! possibleChars or possibleChars.include? c
 		end
 	ensure
@@ -488,7 +488,7 @@ def readChar prompt, possibleChars = nil
 end
 
 def askYesNo prompt
-	?n != readChar("#{prompt} (Y, n) ", [?y, ?n])
+	'n' != readChar("#{prompt} (Y, n) ", %w[y n])
 end
 
 

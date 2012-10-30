@@ -207,10 +207,10 @@ def rmBecomeXXX xxx, arr
 		end
 		puts '---'
 		wrn "these #{arr.count} files are about to be deleted from player cause of become #{xxx}"
-		case readChar '(d)elete, do (n)ot delete, (E)xit ? ', [?e, ?d, ?n]
-			when ?e
+		case readChar '(d)elete, do (n)ot delete, (E)xit ? ', %w[e d n]
+			when 'e'
 				exit
-			when ?d
+			when 'd'
 				arr.each do |f|
 					rmInPlayer f
 					exitIfWasCtrlC
