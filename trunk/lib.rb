@@ -182,7 +182,9 @@ end
 class String
 	def matchToFilter?
 		return false if $onlyBest and ! self.best?
-		return false if $grep and ! self.match Regexp.new $grep, Regexp::IGNORECASE
+		dup = self.dup
+		dup.force_encoding 'utf-8'
+		return false if $grep and dup !~ /#$grep/iu
 		return true
 	end
 end
