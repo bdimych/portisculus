@@ -25,7 +25,7 @@ srand
 
 $options = <<eos
 -n n - maximum number of files to add
--dndo - do not delete old i.e. exit at once when no space is left on player
+-dndo - do not delete old i.e. exit when no space is left on player
 eos
 start(true, true) {
 	while ! ARGV.empty?
