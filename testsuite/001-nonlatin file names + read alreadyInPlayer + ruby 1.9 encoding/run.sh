@@ -1,4 +1,4 @@
 #!/bin/bash
 
-echo $0
+ruby ./2-fill-player.rb
 
