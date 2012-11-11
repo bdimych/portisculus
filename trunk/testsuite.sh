@@ -5,7 +5,6 @@ do
 	echo - - - - - doing test: $f - - - - -
 	"$f" || exit 1
 	echo
-done
-
+done || exit 1
 echo testsuite succeeded!
 
