@@ -72,8 +72,9 @@ end
 def ARGV.getPlayerRootDir
 	i = self.index '-prd'
 	usage '-prd must be specified' if ! i
-	
-	prd = Pathname.new(self.slice!(i, 2)[1]).cleanpath.to_s
+	prd = self.slice!(i, 2)[1]
+	usage '-prd must be specified' if ! prd
+	prd = Pathname.new(prd).cleanpath.to_s
 	usage "-prd \"#{prd}\" does not exist" if ! File.directory? prd
 	log "player root directory:"
 	lsHeadTail prd
