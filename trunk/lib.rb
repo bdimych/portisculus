@@ -59,8 +59,9 @@ end
 def ARGV.getDbFile
 	i = self.index '-dbf'
 	usage '-dbf must be specified' if ! i
-	
-	dbf = Pathname.new(self.slice!(i, 2)[1]).cleanpath.to_s
+	dbf = self.slice!(i, 2)[1];
+	usage '-dbf must be specified' if ! dbf
+	dbf = Pathname.new(dbf).cleanpath.to_s
 	usage "-dbf \"#{dbf}\" does not exist" if ! File.file? dbf
 	usage "empty file -dbf \"#{dbf}\"" if 0 == File.size(dbf)
 
