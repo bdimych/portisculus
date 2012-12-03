@@ -1,11 +1,11 @@
 #!/bin/bash
 
-while read f
+exec {runFiles}< <(find ./testsuite -name run.sh)
+while read -u $runFiles f
 do
 	echo - - - - - doing test: $f - - - - -
 	"$f" || exit 1
 	echo
-done < <(find ./testsuite -name run.sh)
-
+done
 echo testsuite succeeded!
 
