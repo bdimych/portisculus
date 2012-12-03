@@ -344,7 +344,7 @@ $ df /cygdrive/e
 Filesystem     1K-blocks  Used Available Use% Mounted on
 E:                 95232 50050     45182  53% /cygdrive/e
 =end
-	tmp = %x(df #$playerDir).split("\n")[1].split(/ +/)
+	tmp = %x(df "#$playerDir").split("\n")[1].split(/ +/)
 	return sprintf '%.1f Mb used, %.1f Mb free', tmp[2].to_f/1024, tmp[3].to_f/1024
 end
 
