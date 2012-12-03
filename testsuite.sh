@@ -1,10 +1,11 @@
 #!/bin/bash
 
-exec {runFiles}< <(find ./testsuite -name run.sh)
-while read -u $runFiles f
+set -e -o pipefail
+
+find ./testsuite -name run.sh | while read f
 do
 	echo - - - - - doing test: $f - - - - -
-	"$f" || exit 1
+	"$f"
 	echo
 done
 echo testsuite succeeded!
