@@ -22,5 +22,3 @@ do
 	ls -l 2-fill-out.txt
 done
 
-rm -v "$portdir/alreadyInPlayer.txt"
-
