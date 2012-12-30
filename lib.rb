@@ -146,7 +146,7 @@ eos
 	usage if ARGV.include? '--help'
 
 	log "#{File.basename $0} started"
-	
+
 	if optionsForFilter
 		ARGV.getFilterOptions
 		if filtered?
@@ -167,7 +167,7 @@ eos
 	prd = ARGV.getPlayerRootDir if readInPlayer
 
 	yield if block_given?
-	
+
 	determinePlayerDir prd if readInPlayer
 	readDb
 	readAlreadyInPlayer if readInPlayer
@@ -206,15 +206,15 @@ $db = {}
 def dbStat
 	dbStat = {
 		:totalPaths => $db.keys.count,
-		
+
 		:nonexistent => 0,
 		:dirs => 0,
 		:files => 0,
-		
+
 		:best => 0,
 		:beatless => 0,
 		:skipped => 0,
-		
+
 		:withoutBpm => 0,
 		:canBeAdded => 0
 	}
@@ -226,11 +226,11 @@ def dbStat
 		else
 			dbStat[:files] += 1
 		end
-		
+
 		dbStat[:best] += 1 if path.best?
 		dbStat[:beatless] += 1 if path.beatless?
 		dbStat[:skipped] += 1 if path.skipped?
-		
+
 		dbStat[:withoutBpm] += 1 if path.withoutBpm?
 		dbStat[:canBeAdded] += 1 if path.canBeAdded?
 	end
@@ -261,7 +261,7 @@ class String
 	def dir?
 		$db[self][:dir]
 	end
-	
+
 	def best?
 		$db[self][:flag] == '+'
 	end
@@ -271,7 +271,7 @@ class String
 	def skipped?
 		$db[self][:flag] == '-'
 	end
-	
+
 	def withoutBpm?
 		self.exists? and !self.dir? and !self.skipped? and !self.beatless? and !self.bpmOk?
 	end
@@ -290,7 +290,7 @@ def readDb
 	File.open($dbFile).each do |line|
 		line.gsub!(/^\s*|\s*$/, '')
 		next if line.empty?
-		
+
 		flag = line.slice!(/^\s*([+\-=])\s*/) ? $1 : nil
 		trailingSlash = line.slice! /\/$/ # in order to correctly writeDb directory paths form another computer and nonexistent on this one
 		path, bpm = line.split(/\s*:(?!\\)\s*/) # negative lookahead (?!\\) is needed for do not split dos paths C:\...
@@ -301,11 +301,11 @@ def readDb
 			raise "cygpath failed: #$?" if $? != 0
 		end
 		path = Pathname.new(path).cleanpath.to_s
-		
+
 		dbSet path, :flag, flag
 		dbSet path, :bpm, bpm
 		dbSet path, :trailingSlash, trailingSlash if trailingSlash
-		
+
 		log $db.count if $db.count % 1000 == 0
 	end
 	log "db loaded: #{dbStat.inspect}"
@@ -351,9 +351,9 @@ end
 def readAlreadyInPlayer
 	aipTxt = "#$playerDir/alreadyInPlayer.txt"
 	log "reading #{aipTxt}"
-	
+
 	pdEntries = Dir.entries $playerDir
-	
+
 	knownNamesInPlayer = []
 	recodedFromThePlayerDirItself = []
 	notInDb = {}
@@ -385,7 +385,7 @@ def readAlreadyInPlayer
 			end
 		end
 	end
-	
+
 	log "#{knownNamesInPlayer.count} known files in player, checking other files"
 
 	if ! recodedFromThePlayerDirItself.empty?
@@ -395,7 +395,7 @@ def readAlreadyInPlayer
 		end
 		raise 'error rm recodedFromThePlayerDirItself' if $? != 0
 	end
-	
+
 	if ! notInDb.empty?
 		wrn "these #{notInDb.count} files are present in the alreadyInPlayer.txt but absent in the database:"
 		puts '---'
@@ -414,7 +414,7 @@ def readAlreadyInPlayer
 				raise 'error rm notInDb' if $? != 0
 		end
 	end
-	
+
 	unknown = (pdEntries - %w[. .. alreadyInPlayer.txt tempDirForOrdering] - knownNamesInPlayer - recodedFromThePlayerDirItself - notInDb.keys).map{|name| "#$playerDir/#{name}"}
 	if ! unknown.empty?
 		wrn "these #{unknown.count} files are not mentioned in the alreadyInPlayer.txt:"
@@ -434,7 +434,7 @@ def readAlreadyInPlayer
 				raise 'error rm unknown' if $? != 0
 		end
 	end
-	
+
 	log 'readAlreadyInPlayer done'
 end
 
