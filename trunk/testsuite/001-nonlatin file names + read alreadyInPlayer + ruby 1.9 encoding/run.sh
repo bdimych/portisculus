@@ -2,6 +2,15 @@
 
 set -e -o pipefail
 
+if ruby -e 'exit Encoding.default_external == Encoding.find("filesystem")'
+then
+	echo \
+'! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
+WARNING! ruby says Encoding.default_external==Encoding.find("filesystem")
+so on this system this test can not actually check encoding normalization in the lib.rb
+! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !'
+fi
+
 mydir=$(dirname "$0")
 echo mydir is $mydir
 portdir="$mydir/prd/portisculus-123"
@@ -11,7 +20,7 @@ echo portdir is $portdir
 	cd "$portdir"
 	rm -fv alreadyInPlayer.txt
 	echo creating alreadyInPlayer.txt
-	ls | sed 's/---\(.*\)/& < \1/' | tee alreadyInPlayer.txt
+	ls | sed 's/---\(.*\)/& < \1/' | { sleep 1; tee alreadyInPlayer.txt; } # на цигвине sleep ненужен а вот на линуксе оказалось "alreadyInPlayer.txt" видимо очень быстро создаётся и попадает в список ls
 	echo wc alreadyInPlayer.txt
 	wc alreadyInPlayer.txt
 )
