@@ -297,7 +297,10 @@ def readDb
 		path.gsub! /^"|"$/, '' # e.g. in Total Commander Ctrl-Shift-Enter or in Far Alt-Shift-Insert allows to copy full path doublequoted
 		if path =~ /\\/ and RUBY_PLATFORM =~ /cygwin/
 			log "dos path found #{path}"
-			log "cygpath result: #{path = %x(cygpath '#{path}').chomp}"
+			path = IO.popen ['cygpath', path] do |pipe|
+				pipe.read.chomp
+			end
+			log "cygpath result: \"#{path}\""
 			raise "cygpath failed: #$?" if $? != 0
 		end
 		path = Pathname.new(path).cleanpath.to_s
