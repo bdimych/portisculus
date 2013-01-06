@@ -19,7 +19,7 @@ if uname | grep -i cygwin
 then
 	echo we are in cygwin
 	checkOutput "cygpath result: \"/cygdrive/d/Downloads/_ М У З Ы К А _/The Big Pink - Future This (2012) x/\""
-	checkOutput "cygpath result: \"/cygdrive/d/Downloads/_ М У З Ы К А _/Super Dance Hits 90's - 2005\""
+	checkOutput "cygpath result: \"/cygdrive/d/Downloads/_ М У З Ы К А _/Super Dance Hits 90's - 2005 x\""
 else
 	echo we are probably in linux
 	checkOutput "db loaded: {:totalPaths=>2, :nonexistent=>2"
