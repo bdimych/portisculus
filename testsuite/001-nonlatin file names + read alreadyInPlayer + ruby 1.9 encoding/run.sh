@@ -28,7 +28,7 @@ echo portdir is $portdir
 echo starting 2-fill-player.rb
 echo y | ruby ./2-fill-player.rb -dbf "$mydir/dbf.txt" -prd "$mydir/prd" &> 2-fill-out.txt &
 echo waiting for 2-fill-out.txt
-for x in `seq 5`
+for x in `seq 9`
 do
 	jobs
 	ls -l 2-fill-out.txt
