@@ -135,10 +135,10 @@ def usage errorMsg = nil
 	exit errorMsg ? 1 : 0
 end
 
-def start readInPlayer = false, optionsForFilter = false
+def start readInPlayer = false, getFilterOptions = false
 	$options = "-dbf /bpm/database/file.txt (required)\n#$options"
 	$options = "-prd /player/root/directory (required)\n#$options" if readInPlayer
-	$options += <<eos if optionsForFilter
+	$options += <<eos if getFilterOptions
 -r n-n - needed bpm range
 -ob - add only best songs
 -re regexp - add only matched files
@@ -147,7 +147,7 @@ eos
 
 	log "#{File.basename $0} started"
 
-	if optionsForFilter
+	if getFilterOptions
 		ARGV.getFilterOptions
 		if filtered?
 			msg = []
