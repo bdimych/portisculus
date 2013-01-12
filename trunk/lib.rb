@@ -88,7 +88,7 @@ def ARGV.getFilterOptions
 			when '-re'
 				$grep = self.shift
 				log "filter option: -re #$grep"
-			when /-r(.*)/
+			when /^-r(.*)/
 				r = $1.empty? ? self.shift : $1
 				if r =~ /^(\d+)-(\d+)$/
 					$rangeComLine = Range.new $1.to_i, $2.to_i
