@@ -232,7 +232,7 @@ if filtered?
 	$db.keys.each do |f|
 		if $db[f][:inPlayer] and f.matchToFilter? and !f.exists? and !f.beatless? and !$rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
 			path = "#$playerDir/#{$db[f][:inPlayer][:name]}"
-			log "NMOOR found #{path}"
+			log "NEMOOR song found #{path}"
 			dbSet path, :bpm, $db[f][:inPlayer][:bpm]
 			filesToAdd.push path
 		end
