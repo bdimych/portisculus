@@ -1,1 +1,2 @@
-  /cygdrive/d/Downloads/_ М У З Ы К А _/Diskoteka_Avariya-Diskografia/Альбомы и синглы/2008 - The Best/01 Отцы.mp3: 124
+  testsuite/003-filter-regexp-utf8/01 Отцы.mp3: 124
+  ./testsuite/003-filter-regexp-utf8/01 Отцы.mp3: 124
