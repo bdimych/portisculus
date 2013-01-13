@@ -9,7 +9,7 @@ set +x
 echo check output
 if ! {
 	grep 'regexp and/or -ob was specified, 1 files matched' out.txt &&
-	grep '/cygdrive/d/Downloads/_ М У З Ы К А _/Diskoteka_Avariya-Diskografia/Альбомы и синглы/2008 - The Best/01 Отцы.mp3' out.txt &&
+	grep 'testsuite/003-filter-regexp-utf8/01 Отцы.mp3' out.txt &&
 	grep 'num of files to add:     all of 1$' out.txt
 }
 then
