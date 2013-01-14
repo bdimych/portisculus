@@ -76,7 +76,16 @@ writeDb
 # prompt for second pass
 
 puts "\nfirst pass done"
-pass2 = $db.keys.sort.select do |f|
+pass2 = $db.keys.sort do |a, b|
+	# сначала те которые я сам специально отметил byhands т.е. сам хочу посчитать вручную
+	if $db[a][:bpm] == 'byhands' and $db[b][:bpm] != 'byhands' then
+		-1
+	elsif $db[a][:bpm] != 'byhands' and $db[b][:bpm] == 'byhands' then
+		1
+	else
+		a.casecmp b
+	end
+end.select do |f|
 	f.withoutBpm?
 end
 begin
@@ -91,9 +100,7 @@ begin
 				when ?n
 					exit
 				when ?l
-					$db.keys.sort.each do |f|
-						puts f if f.withoutBpm?
-					end
+					puts pass2
 					puts
 			end
 		end
