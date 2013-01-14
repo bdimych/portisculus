@@ -292,7 +292,7 @@ def readDb
 		next if line.empty?
 
 		flag = line.slice!(/^\s*([+\-=])\s*/) ? $1 : nil
-		trailingSlash = line.slice! /\/$/ # in order to correctly writeDb directory paths form another computer and nonexistent on this one
+		trailingSlash = line.slice! /\/$/ # in order to correctly writeDb directory paths from another computer and nonexistent on this one
 		path, bpm = line.split(/\s*:(?!\\)\s*/) # negative lookahead (?!\\) is needed for do not split dos paths C:\...
 		path.gsub! /^"|"$/, '' # e.g. in Total Commander Ctrl-Shift-Enter or in Far Alt-Shift-Insert allows to copy full path doublequoted
 		if path =~ /\\/ and RUBY_PLATFORM =~ /cygwin/
