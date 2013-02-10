@@ -1,19 +1,15 @@
-0000-162---Ramirez - El gallinero by Soul2soull.mp3 < /cygdrive/c/Documents and Settings/bdimych/My Documents/Downloads/Eurodance music/Ramirez - El gallinero by Soul2soull.mp3
+0000-162---Ramirez - El gallinero by Soul2soull.mp3 < /no such path/Eurodance music/Ramirez - El gallinero by Soul2soull.mp3
 0001-168---03 - Малинки.mp3 < testsuite/004-filtered-mode/mp3/best/03 - Малинки.mp3
-0002-157---09 - Бухгалтер Иванов.mp3 < testsuite/004-filtered-mode/mp3/09 - Бухгалтер Иванов.mp3
-0003-171---03 - Arash - Boro Boro .mp3 < testsuite/004-filtered-mode/mp3/03 - Arash - Boro Boro .mp3
-0004-160---Demiro - My house at 320 kbps by Soul2soull.mp3 < testsuite/004-filtered-mode/mp3/Demiro - My house at 320 kbps by Soul2soull.mp3
-0005-167---Banquet - Drunken sailor [5.10] by Soul2soull.mp3 < /cygdrive/c/Documents and Settings/bdimych/My Documents/Downloads/Eurodance music/Banquet - Drunken sailor [5.10] by Soul2soull.mp3
+0005-167---Banquet - Drunken sailor [5.10] by Soul2soull.mp3 < /no such path/Eurodance music/Banquet - Drunken sailor [5.10] by Soul2soull.mp3
 0006-BLS---Era__Oliver_Shanti_Tichinabet_2222.mp3 < testsuite/004-filtered-mode/mp3/bls/Era__Oliver_Shanti_Tichinabet_2222.mp3
 0007-161---Rexanthony - Capturing matrix by Soul2soull.mp3 < testsuite/004-filtered-mode/mp3/Rexanthony - Capturing matrix by Soul2soull.mp3
 0008-166---302 - Jack and the Rave_1.mp3 < testsuite/004-filtered-mode/mp3/best/302 - Jack and the Rave_1.mp3
 0009-158---Lorna b - I am on fire by Soul2soull.mp3 < testsuite/004-filtered-mode/mp3/Lorna b - I am on fire by Soul2soull.mp3
-0010-166---Double vision - Knockin' by Soul2soull.mp3 < /cygdrive/c/Documents and Settings/bdimych/My Documents/Downloads/Eurodance music/Double vision - Knockin' by Soul2soull.mp3
-0011-157---Mc eric & barbara - It is your day by Soul2soull.mp3 < /cygdrive/c/Documents and Settings/bdimych/My Documents/Downloads/Eurodance music/Mc eric & barbara - It is your day by Soul2soull.mp3
+0010-166---Double vision - Knockin' by Soul2soull.mp3 < /no such path/Eurodance music/Double vision - Knockin' by Soul2soull.mp3
+0011-157---Mc eric & barbara - It is your day by Soul2soull.mp3 < /no such path/Eurodance music/Mc eric & barbara - It is your day by Soul2soull.mp3
 0012-165---Melodie mc - Anyone out there (radio) by Soul2soull.mp3 < testsuite/004-filtered-mode/mp3/Melodie mc - Anyone out there (radio) by Soul2soull.mp3
-0013-BLS---Intro.mp3 < /cygdrive/c/Documents and Settings/bdimych/My Documents/Downloads/DJ Balloon - Horny & Mean/Intro.mp3
-0014-171---01. Different Reality.mp3 < testsuite/004-filtered-mode/mp3/best/01. Different Reality.mp3
-0015-160---digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull.mp3 < /cygdrive/c/Documents and Settings/bdimych/My Documents/Downloads/Eurodance music/digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull.mp3
+0013-BLS---Intro.mp3 < /no such path/DJ Balloon - Horny & Mean/Intro.mp3
+0015-160---digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull.mp3 < /no such path/Eurodance music/digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull.mp3
 0016-162---20_Captain Hollywood - Flying High 2003 (CJ Stone Club Mix).mp3 < testsuite/004-filtered-mode/mp3/20_Captain Hollywood - Flying High 2003 (CJ Stone Club Mix).mp3
 0017-160---24_Ann Winsborn - La La Love On My Mind.mp3 < testsuite/004-filtered-mode/mp3/24_Ann Winsborn - La La Love On My Mind.mp3
 0018-162---01. Calling Elvis.mp3 < testsuite/004-filtered-mode/mp3/01. Calling Elvis.mp3
