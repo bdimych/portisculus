@@ -8,9 +8,9 @@
   testsuite/004-filtered-mode/mp3/Lorna b - I am on fire by Soul2soull.mp3: 138
   testsuite/004-filtered-mode/mp3/Melodie mc - Anyone out there (radio) by Soul2soull.mp3: 135
   testsuite/004-filtered-mode/mp3/Rexanthony - Capturing matrix by Soul2soull.mp3: 161
-  testsuite/004-filtered-mode/mp3/best/01. Different Reality.mp3: 148
-  testsuite/004-filtered-mode/mp3/best/03 - Малинки.mp3: 132
-  testsuite/004-filtered-mode/mp3/best/302 - Jack and the Rave_1.mp3: 143
++  testsuite/004-filtered-mode/mp3/best/01. Different Reality.mp3: 148
++  testsuite/004-filtered-mode/mp3/best/03 - Малинки.mp3: 132
++  testsuite/004-filtered-mode/mp3/best/302 - Jack and the Rave_1.mp3: 143
 = testsuite/004-filtered-mode/mp3/bls/Era__Oliver_Shanti_Tichinabet_2222.mp3: 
 = /no such path/DJ Balloon - Horny & Mean/Intro.mp3
 + /no such path/Eurodance music/Banquet - Drunken sailor [5.10] by Soul2soull.mp3: 134
