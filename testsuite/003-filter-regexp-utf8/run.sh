@@ -4,7 +4,7 @@ set -xe -o pipefail
 
 mkdir portisculus-1
 
-echo yn | ruby ./2-fill-player.rb -dbf testsuite/003-filter-regexp-utf8/dbf.txt -re отцы -prd . 2>&1 | tee out.txt
+echo -n yn | ruby ./2-fill-player.rb -dbf testsuite/003-filter-regexp-utf8/dbf.txt -re отцы -prd . 2>&1 | tee out.txt
 set +x
 echo check output
 if ! {

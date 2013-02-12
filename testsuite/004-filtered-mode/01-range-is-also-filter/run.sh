@@ -9,7 +9,7 @@ cp -prv $portDir{,-backup}
 ls -l $portDir | tee ls-before.txt
 
 # the test
-echo yyn | ./2-fill-player.rb -dbf testsuite/004-filtered-mode/mp3/dbf.txt -prd testsuite/004-filtered-mode/mp3/player-root/ -r172-174 -ob | tee 2-fill-log.txt
+echo -n yyn | ruby ./2-fill-player.rb -dbf testsuite/004-filtered-mode/mp3/dbf.txt -prd testsuite/004-filtered-mode/mp3/player-root/ -r172-174 -ob | tee 2-fill-log.txt
 
 # restore
 rm -rfv $portDir
