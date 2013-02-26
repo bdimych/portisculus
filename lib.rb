@@ -489,7 +489,7 @@ def readChar prompt, possibleChars = nil
 		system *%w(stty raw isig opost -echo) if STDIN.tty?
 		while true
 			print prompt
-			c = STDIN.getc
+			c = STDIN.sysread(1)
 			c = possibleChars[0] if possibleChars and c.ord == 13 # Enter means default char
 			puts c.ord == 27 ? '' : c # 27 - escape makes terminal doing unwanted things
 			return c if ! possibleChars or possibleChars.include? c
