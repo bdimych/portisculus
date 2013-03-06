@@ -34,6 +34,8 @@ do
 	grep "$nameRegexp" ls-test.txt
 done
 set -x
+grep '0001-168---03 - Малинки\.mp3' ls-test.txt
+grep '0008-166---302 - Jack and the Rave_1\.mp3' ls-test.txt
 grep '5 added (2 recodedFromThePlayerDirItself):' test-log.txt
 grep 'saved, 20 lines' test-log.txt
 set +x
