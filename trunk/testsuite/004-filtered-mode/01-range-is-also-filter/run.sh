@@ -35,6 +35,7 @@ do
 done
 set -x
 grep '5 added (2 recodedFromThePlayerDirItself):' test-log.txt
+grep 'saved, 20 lines' test-log.txt
 set +x
 
 
