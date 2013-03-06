@@ -256,7 +256,11 @@ filesToAdd.shuffle.each_with_index do |f, i|
 	
 	if $db[f][:inPlayer]
 		log 'already in player'
-		next
+		if $rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
+			next
+		else
+			log 'but it should be added because of bpm in player is out of the required range'
+		end
 	end
 	
 	next if ! f.best? and ! checkSongLength f, tooLong
