@@ -452,7 +452,7 @@ def saveAlreadyInPlayer
 	log "saving #{aipTxt}"
 	lines = []
 	$db.each_pair do |f, hash|
-		lines.push "#{hash[:inPlayer][:name]} < #{f =~ /^#$playerDir/ ? 'recodedFromThePlayerDirItself' : f}" if hash[:inPlayer]
+		lines.push "#{hash[:inPlayer][:name]} < #{f}" if hash[:inPlayer]
 	end
 	File.open aipTxt, 'w' do |fh|
 		lines.sort.each do |l|
