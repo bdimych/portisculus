@@ -259,6 +259,7 @@ filesToAdd.shuffle.each_with_index do |f, i|
 			next
 		else
 			log 'but it should be added because of bpm in player is out of the required range'
+			f = makeTempCopy f, f, [:bpm => $db[f][:bpm], :flag => $db[f][:flag]]
 		end
 	end
 	
