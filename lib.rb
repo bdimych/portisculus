@@ -59,7 +59,7 @@ end
 def ARGV.getDbFile
 	i = self.index '-dbf'
 	usage '-dbf must be specified' if ! i
-	dbf = self.slice!(i, 2)[1];
+	dbf = self.slice!(i, 2)[1]
 	usage '-dbf must be specified' if ! dbf
 	dbf = Pathname.new(dbf).cleanpath.to_s
 	usage "-dbf \"#{dbf}\" does not exist" if ! File.file? dbf
@@ -286,7 +286,7 @@ end
 
 
 def readDb
-	log 'reading db';
+	log 'reading db'
 	FileUtils.rm_rf 'tempCopy', :verbose => true
 	File.open($dbFile).each do |line|
 		line.gsub!(/^\s*|\s*$/, '')
