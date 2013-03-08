@@ -41,6 +41,16 @@ start(true, true) {
 	usage '-dndo and -ob may not be specified together' if dndo and $onlyBest
 }
 
+# delete all tempCopy files
+$db.delete_if do |f, hash|
+	if f =~ %r|^tempCopy/|
+		log "deleting tempCopy file #{f}"
+		File.delete "#$playerDir/#{hash[:inPlayer][:name]}"
+		next true
+	end
+	next false
+end
+
 filesToAdd = $db.keys.sort.select do |path|
 	path.canBeAdded? and (! filtered? or path.matchToFilter?)
 end
