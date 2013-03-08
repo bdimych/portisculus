@@ -24,8 +24,8 @@ for nameRegexp in \
 	'0000-17[234]---01\. Different Reality\.mp3' \
 	'0000-17[234]---03 - Малинки\.mp3' \
 	'0000-17[234]---302 - Jack and the Rave_1\.mp3' \
-	'0000-17[234]---0005-167---Banquet - Drunken sailor \[5\.10\] by Soul2soull\.mp3' \
-	'0000-17[234]---0015-160---digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull\.mp3'
+	'0000-17[234]---Banquet - Drunken sailor \[5\.10\] by Soul2soull\.mp3' \
+	'0000-17[234]---digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull\.mp3'
 do
 	echo - - - check "$nameRegexp" - - -
 	echo in log
