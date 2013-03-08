@@ -287,6 +287,7 @@ end
 
 def readDb
 	log 'reading db';
+	FileUtils.rm_rf 'tempCopy', :verbose => true
 	File.open($dbFile).each do |line|
 		line.gsub!(/^\s*|\s*$/, '')
 		next if line.empty?
