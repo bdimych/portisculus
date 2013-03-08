@@ -243,7 +243,7 @@ if filtered?
 		if $db[f][:inPlayer] and f.matchToFilter? and !f.exists? and !f.beatless? and !$rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
 			fInPlayer = "#$playerDir/#{$db[f][:inPlayer][:name]}"
 			log "NEMOOR song found #{fInPlayer}"
-			filesToAdd.push makeTempCopy f, fInPlayer, [:bpm => $db[f][:inPlayer][:bpm], :flag => $db[f][:flag]]
+			filesToAdd.push makeTempCopy f, fInPlayer, {:bpm => $db[f][:inPlayer][:bpm], :flag => $db[f][:flag]}
 		end
 	end
 end
@@ -269,7 +269,7 @@ filesToAdd.shuffle.each_with_index do |f, i|
 			next
 		else
 			log 'but it should be added because of bpm in player is out of the required range'
-			f = makeTempCopy f, f, [:bpm => $db[f][:bpm], :flag => $db[f][:flag]]
+			f = makeTempCopy f, f, {:bpm => $db[f][:bpm], :flag => $db[f][:flag]}
 		end
 	end
 	
