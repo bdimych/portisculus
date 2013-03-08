@@ -137,7 +137,7 @@ at_exit {
 	end
 	puts
 
-	puts "#{added.count} added (#{added.keys.count{|ff| ff =~ /^#$playerDir/}} recodedFromThePlayerDirItself):"
+	puts "#{added.count} added (#{added.keys.count{|ff| ff =~ %r|^tempCopy/|}} tempCopy):"
 	added.keys.sort.each do |f|
 		puts "#{f}: #{sprintf '%.1f', added[f].to_f/1024/1024} Mb"
 	end
@@ -423,7 +423,7 @@ trap 'INT', intTrap
 	log "file done, statistics:
                time:    #{execTime.round} seconds
                deleted: #{$deleted.count} files / #{$stat[:sizeDeleted]/1024/1024} Mb
-               added:   #{added.count} files / #{$stat[:sizeAdded]/1024/1024} Mb (#{added.keys.count{|ff| ff =~ /^#$playerDir/}} recodedFromThePlayerDirItself)
+               added:   #{added.count} files / #{$stat[:sizeAdded]/1024/1024} Mb (#{added.keys.count{|ff| ff =~ %r|^tempCopy/|}} tempCopy)
                speed:   #{sprintf '%.1f', added.count/execTime} files / #{sprintf '%.1f', $stat[:sizeAdded]/1024/1024/execTime} Mb per second
                player:  #{$db.values.count {|hash| hash[:inPlayer]}} files, #{playerFreeSpace}
 "
