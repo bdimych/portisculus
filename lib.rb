@@ -368,7 +368,6 @@ def readAlreadyInPlayer
 	pdEntries = Dir.entries $playerDir
 
 	knownNamesInPlayer = []
-	recodedFromThePlayerDirItself = []
 	notInDb = {}
 	if pdEntries.include? 'alreadyInPlayer.txt'
 		File.open(aipTxt).each do |line|
@@ -380,6 +379,15 @@ def readAlreadyInPlayer
 				nameInPlayer = $1
 				bpmInPlayer = $2
 				origPath = $3
+				if origPath =~ %r|^tempCopy/|
+					log "tempCopy file found in player: #{origPath}"
+					realOrigPath = $'
+					raise 'realOrigPath does not exist in db' if !$db[realOrigPath]
+					$db[origPath] = {
+						:bpm => $db[realOrigPath][:bpm],
+						:flag => $db[realOrigPath][:flag]
+					}
+				end
 				if $db[origPath] and pdEntries.include? nameInPlayer
 					$db[origPath][:inPlayer] = {
 						:name => nameInPlayer,
@@ -387,11 +395,7 @@ def readAlreadyInPlayer
 					}
 					knownNamesInPlayer.push nameInPlayer
 				elsif !$db[origPath]
-					if origPath == 'recodedFromThePlayerDirItself'
-						recodedFromThePlayerDirItself.push nameInPlayer if pdEntries.include? nameInPlayer
-					else
-						notInDb[nameInPlayer] = origPath
-					end
+					notInDb[nameInPlayer] = origPath
 				end
 			else
 				raise "could not parse line in the #{aipTxt}: \"#{line}\""
@@ -400,14 +404,6 @@ def readAlreadyInPlayer
 	end
 
 	log "#{knownNamesInPlayer.count} known files in player, checking other files"
-
-	if ! recodedFromThePlayerDirItself.empty?
-		log 'deleting recodedFromThePlayerDirItself'
-		IO.popen 'xargs -0 rm -rv', 'w' do |pipe|
-			pipe.print recodedFromThePlayerDirItself.map{|nameInPlayer| "#$playerDir/#{nameInPlayer}"}.join "\0"
-		end
-		raise 'error rm recodedFromThePlayerDirItself' if $? != 0
-	end
 
 	if ! notInDb.empty?
 		wrn "these #{notInDb.count} files are present in the alreadyInPlayer.txt but absent in the database:"
@@ -428,7 +424,7 @@ def readAlreadyInPlayer
 		end
 	end
 
-	unknown = (pdEntries - %w[. .. alreadyInPlayer.txt tempDirForOrdering] - knownNamesInPlayer - recodedFromThePlayerDirItself - notInDb.keys).map{|name| "#$playerDir/#{name}"}
+	unknown = (pdEntries - %w[. .. alreadyInPlayer.txt tempDirForOrdering] - knownNamesInPlayer - notInDb.keys).map{|name| "#$playerDir/#{name}"}
 	if ! unknown.empty?
 		wrn "these #{unknown.count} files are not mentioned in the alreadyInPlayer.txt:"
 		puts '---'
