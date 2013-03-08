@@ -339,6 +339,7 @@ def makeTempCopy origPathInDb, realPathToCopyFrom, hash
 	FileUtils.mkdir_p File.dirname(tempCopy), :verbose => true
 	File.copy realPathToCopyFrom, tempCopy, :verbose => true
 	$db[tempCopy] = hash
+	return tempCopy
 end
 
 
