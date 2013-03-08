@@ -231,10 +231,9 @@ if filtered?
 	log 'search player for Nonexistent Matched and Out-Of-Range songs'
 	$db.keys.each do |f|
 		if $db[f][:inPlayer] and f.matchToFilter? and !f.exists? and !f.beatless? and !$rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
-			path = "#$playerDir/#{$db[f][:inPlayer][:name]}"
-			log "NEMOOR song found #{path}"
-			dbSet path, :bpm, $db[f][:inPlayer][:bpm]
-			filesToAdd.push path
+			fInPlayer = "#$playerDir/#{$db[f][:inPlayer][:name]}"
+			log "NEMOOR song found #{fInPlayer}"
+			filesToAdd.push makeTempCopy f, fInPlayer, [:bpm => $db[f][:inPlayer][:bpm], :flag => $db[f][:flag]]
 		end
 	end
 end
