@@ -20,6 +20,7 @@ ls -l $portDir | tee ls-before.txt
 echo -n yyn | ruby ./2-fill-player.rb -dbf testsuite/004-filtered-mode/mp3/dbf.txt -prd testsuite/004-filtered-mode/mp3/player-root/ -r172-174 -ob | tee test-log.txt
 ls -l $portDir | tee ls-test.txt
 # check
+# новые добавились
 for nameRegexp in \
 	'0000-17[234]---01\. Different Reality\.mp3' \
 	'0000-17[234]---03 - Малинки\.mp3' \
@@ -27,15 +28,17 @@ for nameRegexp in \
 	'0000-17[234]---Banquet - Drunken sailor \[5\.10\] by Soul2soull\.mp3' \
 	'0000-17[234]---digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull\.mp3'
 do
-	echo - - - check "$nameRegexp" - - -
+	echo - - - check regexp "$nameRegexp" - - -
 	echo in log
 	grep "myCopyFile .*$portDir/$nameRegexp" test-log.txt
 	echo in list
 	grep "$nameRegexp" ls-test.txt
 done
 set -x
-grep '0001-168---03 - Малинки\.mp3' ls-test.txt
-grep '0008-166---302 - Jack and the Rave_1\.mp3' ls-test.txt
+# старые остались
+grep -F '0001-168---03 - Малинки.mp3' ls-test.txt
+grep -F '0008-166---302 - Jack and the Rave_1.mp3' ls-test.txt
+# статистика в логе
 grep '5 added (4 tempCopy):' test-log.txt
 grep 'saved, 20 lines' test-log.txt
 set +x
