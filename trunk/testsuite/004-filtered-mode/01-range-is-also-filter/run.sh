@@ -28,10 +28,10 @@ for nameRegexp in \
 	'0000-17[234]---Banquet - Drunken sailor \[5\.10\] by Soul2soull\.mp3' \
 	'0000-17[234]---digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull\.mp3'
 do
-	echo - - - check regexp "$nameRegexp" - - -
+	echo ==================== check regexp $nameRegexp ====================
 	echo in log
 	grep "myCopyFile .*$portDir/$nameRegexp" test-log.txt
-	echo in list
+	echo in player
 	grep "$nameRegexp" ls-test.txt
 done
 set -x
@@ -41,6 +41,13 @@ grep -F '0008-166---302 - Jack and the Rave_1.mp3' ls-test.txt
 # статистика в логе
 grep '5 added (4 tempCopy):' test-log.txt
 grep 'saved, 20 lines' test-log.txt
+# в логе 4 вызова makeTempCopy
+# 2 NEMOOR
+grep -F 'makeTempCopy /no such path/Eurodance music/Banquet - Drunken sailor [5.10] by Soul2soull.mp3, testsuite/004-filtered-mode/mp3/player-root/portisculus-1/0005-167---Banquet - Drunken sailor [5.10] by Soul2soull.mp3, {:bpm=>"167", :flag=>"+"}' test-log.txt
+grep -F 'makeTempCopy /no such path/Eurodance music/digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull.mp3, testsuite/004-filtered-mode/mp3/player-root/portisculus-1/0015-160---digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull.mp3, {:bpm=>"160", :flag=>"+"}' test-log.txt
+# 2 EOOR
+grep -F 'makeTempCopy testsuite/004-filtered-mode/mp3/best/03 - Малинки.mp3, testsuite/004-filtered-mode/mp3/best/03 - Малинки.mp3, {:bpm=>"132", :flag=>"+"}' test-log.txt
+grep -F 'makeTempCopy testsuite/004-filtered-mode/mp3/best/302 - Jack and the Rave_1.mp3, testsuite/004-filtered-mode/mp3/best/302 - Jack and the Rave_1.mp3, {:bpm=>"143", :flag=>"+"}' test-log.txt
 set +x
 
 

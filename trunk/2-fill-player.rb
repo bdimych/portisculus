@@ -235,10 +235,10 @@ rmBecomeXXX 'out of range', becomeOutOfRange if ! filtered? # если filtered?
 
 
 
-# если задан фильтр то подготовить пережатие на плеере
+# если задан фильтр то найти NEMOOR
 
 if filtered?
-	log 'search player for Nonexistent Matched and Out-Of-Range songs'
+	log 'search player for Nonexistent Matched and Out Of Range songs'
 	$db.keys.each do |f|
 		if $db[f][:inPlayer] and f.matchToFilter? and !f.exists? and !f.beatless? and !$rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
 			fInPlayer = "#$playerDir/#{$db[f][:inPlayer][:name]}"
@@ -267,7 +267,7 @@ filesToAdd.shuffle.each_with_index do |f, i|
 		log 'already in player'
 		if $rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
 			next
-		else
+		else # EOOR - Existent and Out Of Range
 			log "but it should be added because of bpm in player #{$db[f][:inPlayer][:bpm]} is out of the required range"
 			f = makeTempCopy f, f, {:bpm => $db[f][:bpm], :flag => $db[f][:flag]}
 		end
