@@ -147,6 +147,10 @@ eos
 
 	log "#{File.basename $0} started"
 
+	log 'deleting tempCopy folder'
+	FileUtils.rm_rf 'tempCopy'
+	log 'ok'
+
 	if getFilterOptions
 		ARGV.getFilterOptions
 		if filtered?
@@ -287,7 +291,6 @@ end
 
 def readDb
 	log 'reading db'
-	FileUtils.rm_rf 'tempCopy', :verbose => true
 	File.open($dbFile).each do |line|
 		line.gsub!(/^\s*|\s*$/, '')
 		next if line.empty?
@@ -337,8 +340,8 @@ end
 def makeTempCopy origPathInDb, realPathToCopyFrom, hash
 	log "makeTempCopy #{origPathInDb}, #{realPathToCopyFrom}, #{hash.inspect}"
 	tempCopy = "tempCopy/#{origPathInDb}"
-	FileUtils.mkdir_p File.dirname(tempCopy), :verbose => true
-	FileUtils.copy realPathToCopyFrom, tempCopy, :verbose => true
+	FileUtils.mkdir_p File.dirname(tempCopy)
+	FileUtils.copy realPathToCopyFrom, tempCopy
 	$db[tempCopy] = hash
 	return tempCopy
 end
