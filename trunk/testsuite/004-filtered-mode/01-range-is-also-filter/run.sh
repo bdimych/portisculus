@@ -53,6 +53,12 @@ find tempCopy/ | grep -F 'tempCopy/no such path/Eurodance music/Banquet - Drunke
 find tempCopy/ | grep -F 'tempCopy/no such path/Eurodance music/digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull.mp3'
 find tempCopy/ | grep -F 'tempCopy/testsuite/004-filtered-mode/mp3/best/03 - Малинки.mp3'
 find tempCopy/ | grep -F 'tempCopy/testsuite/004-filtered-mode/mp3/best/302 - Jack and the Rave_1.mp3'
+# alreadyInPlayer.txt
+grep -P '0000-17[234]\Q---01. Different Reality.mp3 < testsuite/004-filtered-mode/mp3/best/01. Different Reality.mp3' $portDir/alreadyInPlayer.txt
+grep -P '0000-17[234]\Q---Banquet - Drunken sailor [5.10] by Soul2soull.mp3 < tempCopy//no such path/Eurodance music/Banquet - Drunken sailor [5.10] by Soul2soull.mp3' $portDir/alreadyInPlayer.txt
+grep -P '0000-17[234]\Q---digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull.mp3 < tempCopy//no such path/Eurodance music/digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull.mp3' $portDir/alreadyInPlayer.txt
+grep -P '0000-17[234]\Q---03 - Малинки.mp3 < tempCopy/testsuite/004-filtered-mode/mp3/best/03 - Малинки.mp3' $portDir/alreadyInPlayer.txt
+grep -P '0000-17[234]\Q---302 - Jack and the Rave_1.mp3 < tempCopy/testsuite/004-filtered-mode/mp3/best/302 - Jack and the Rave_1.mp3' $portDir/alreadyInPlayer.txt
 set +x
 
 
