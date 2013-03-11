@@ -174,6 +174,7 @@ at_exit {
 	if filtered?
 		cmd.push '-ob' if $onlyBest
 		cmd.push '-re', $grep if $grep
+		cmd.push '-r', rangeStr($rangeNeeded)
 	end
 	exec *cmd if askYesNo "2-fill finished #{err ? "with error:\nerr: #{err}\n$! is #{$!.inspect}\n$@ is #{$@.inspect}" : 'correctly'}\n\ndo you want to run ['#{cmd.join "' '"}'] ?"
 	puts
