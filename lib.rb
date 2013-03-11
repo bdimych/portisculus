@@ -93,7 +93,7 @@ def ARGV.getFilterOptions
 				if r =~ /^(\d+)-(\d+)$/
 					$rangeComLine = Range.new $1.to_i, $2.to_i
 					if $rangeComLine.min == nil
-						usage 'first value in range is larger then the last'
+						usage 'first value in range is larger than the last'
 					end
 					log "filter option: -r #{rangeStr $rangeComLine}"
 				else
