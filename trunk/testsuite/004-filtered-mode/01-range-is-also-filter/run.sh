@@ -48,6 +48,11 @@ grep -F 'makeTempCopy /no such path/Eurodance music/digital boy with asia - 01 -
 # 2 EOOR
 grep -F 'makeTempCopy testsuite/004-filtered-mode/mp3/best/03 - Малинки.mp3, testsuite/004-filtered-mode/mp3/best/03 - Малинки.mp3, {:bpm=>"132", :flag=>"+"}' test-log.txt
 grep -F 'makeTempCopy testsuite/004-filtered-mode/mp3/best/302 - Jack and the Rave_1.mp3, testsuite/004-filtered-mode/mp3/best/302 - Jack and the Rave_1.mp3, {:bpm=>"143", :flag=>"+"}' test-log.txt
+# содержимое tempCopy/
+find tempCopy/ | grep -F 'tempCopy/no such path/Eurodance music/Banquet - Drunken sailor [5.10] by Soul2soull.mp3'
+find tempCopy/ | grep -F 'tempCopy/no such path/Eurodance music/digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull.mp3'
+find tempCopy/ | grep -F 'tempCopy/testsuite/004-filtered-mode/mp3/best/03 - Малинки.mp3'
+find tempCopy/ | grep -F 'tempCopy/testsuite/004-filtered-mode/mp3/best/302 - Jack and the Rave_1.mp3'
 set +x
 
 
