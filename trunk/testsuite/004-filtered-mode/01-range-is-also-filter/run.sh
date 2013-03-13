@@ -60,13 +60,28 @@ grep -P '0000-17[234]\Q---digital boy with asia - 01 - the mountain of king (rad
 grep -P '0000-17[234]\Q---03 - Малинки.mp3 < tempCopy/testsuite/004-filtered-mode/mp3/best/03 - Малинки.mp3' $portDir/alreadyInPlayer.txt
 grep -P '0000-17[234]\Q---302 - Jack and the Rave_1.mp3 < tempCopy/testsuite/004-filtered-mode/mp3/best/302 - Jack and the Rave_1.mp3' $portDir/alreadyInPlayer.txt
 # в логе в самом конце предложение запустить 3-order
-tail test-log.txt | grep -F "do you want to run ['./3-order-files-in-player.rb' '-dbf' 'testsuite/004-filtered-mode/mp3/dbf.txt' '-prd' 'testsuite/004-filtered-mode/mp3/player-root' '-ob' '-r' '172-174']"
+orderCmd="'./3-order-files-in-player.rb' '-dbf' 'testsuite/004-filtered-mode/mp3/dbf.txt' '-prd' 'testsuite/004-filtered-mode/mp3/player-root' '-ob' '-r' '172-174'"
+tail test-log.txt | grep -F "do you want to run [$orderCmd]"
+set +x
+
+# run 3-order
+echo -n y | eval ruby $orderCmd | tee -a test-log.txt
+if [[ -d $portDir ]]
+then
+	echo ERROR: $portDir directory still exists after 3-order
+	exit 1
+fi
+set -x
+grep -F 'tempCopy file found in player: tempCopy//no such path/Eurodance music/Banquet - Drunken sailor [5.10] by Soul2soull.mp3' test-log.txt
+grep -F 'tempCopy file found in player: tempCopy//no such path/Eurodance music/digital boy with asia - 01 - the mountain of king (radio edit) by Soul2soull.mp3' test-log.txt
+grep -F 'tempCopy file found in player: tempCopy/testsuite/004-filtered-mode/mp3/best/03 - Малинки.mp3' test-log.txt
+grep -F 'tempCopy file found in player: tempCopy/testsuite/004-filtered-mode/mp3/best/302 - Jack and the Rave_1.mp3' test-log.txt
 set +x
 
 
 
 # restore
-rm -rfv $portDir $portDir2
+rm -rv $portDir2
 mv -v $portDir{-backup,}
 # check restored
 ls -l $portDir | tee ls-after.txt
