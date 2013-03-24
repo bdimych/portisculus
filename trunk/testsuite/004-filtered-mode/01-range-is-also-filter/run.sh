@@ -83,7 +83,8 @@ tail test-log.txt | grep -F 'saved, 20 lines'
 cat  test-log.txt | grep -F -A2 'insertEvenly filtered, common, best, result'     | grep -F 'insertEvenly end: base.count: 0, ins.count: 5, interval: 0, res.count: 5'
 cat  test-log.txt | grep -F -A2 'insertEvenly filtered, result, beatless, result' | grep -F 'insertEvenly end: base.count: 5, ins.count: 0, interval: 5, res.count: 5'
 cat  test-log.txt | grep -F -A2 'insertEvenly rest, common, best, result'         | grep -F 'insertEvenly end: base.count: 9, ins.count: 0, interval: 2, res.count: 13'
-cat  test-log.txt | grep -F -A2 'insertEvenly rest, result, beatless, result'     | grep -F 'insertEvenly end: base.count: 13, ins.count: 0, interval: 4, res.count: 15'
+cat  test-log.txt | grep -F -A2 'insertEvenly rest, result, beatless, result'     | grep -F 'insertEvenly end: base.count: 15, ins.count: 0, interval: 4, res.count: 15'
+./testsuite/004-filtered-mode/01-range-is-also-filter/check-order.pl
 set +x
 
 

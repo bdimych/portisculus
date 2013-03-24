@@ -30,8 +30,8 @@ $lists = {
 }
 
 $db.keys.shuffle.each do |f|
-	target = (filtered? and f.matchToFilter?) ? $lists[:filtered] : $lists[:rest]
-	if $db[f][:inPlayer]
+	if hash = $db[f][:inPlayer]
+		target = (filtered? and f.matchToFilter? and (!$rangeNeeded or $rangeNeeded.include?(hash[:bpm].to_i))) ? $lists[:filtered] : $lists[:rest]
 		if f.best?
 			target = target[:best]
 		elsif f.beatless?
@@ -39,7 +39,7 @@ $db.keys.shuffle.each do |f|
 		else
 			target = target[:common]
 		end
-		target.push $db[f][:inPlayer]
+		target.push hash
 	end
 end
 
