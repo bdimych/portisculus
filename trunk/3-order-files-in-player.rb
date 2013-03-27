@@ -108,7 +108,7 @@ begin
 		fh.write "123456789\n"*10000
 	end
 rescue Errno::ENOSPC
-	raise 'free space on player is too small and moving files may cause problems so WILL STOP NOW! Free some space and retry'
+	raise 'Free space on player is too small and moving files may cause problems so WILL STOP NOW! Please free some space and retry'
 ensure
 	File.delete "#$playerDir/checkFreeSpace.txt"
 end
