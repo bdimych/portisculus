@@ -65,7 +65,7 @@ tail test-log.txt | grep -F "do you want to run [$orderCmd]"
 set +x
 
 # run 3-order
-echo -n y | eval ruby $orderCmd | tee -a test-log.txt
+echo -n y | eval ruby $orderCmd | tee test-log.txt
 # checks
 if [[ -d $portDir ]]
 then
