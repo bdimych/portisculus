@@ -149,7 +149,7 @@ at_exit {
 		puts "#{f}: #{sec_min_sec tooLong[f]}"
 	end
 	puts
-	
+
 	puts "#{unsuitable.count} unsuitable:"
 	unsuitable.keys.sort.each do |f|
 		puts "#{f}: #{unsuitable[f]}"
@@ -179,7 +179,7 @@ at_exit {
 	end
 	exec *cmd if askYesNo "2-fill finished #{err ? "with error:\nerr: #{err}\n$! is #{$!.inspect}\n$@ is #{$@.inspect}" : 'correctly'}\n\ndo you want to run ['#{cmd.join "' '"}'] ?"
 	puts
-	
+
 	# cosmetic
 	log "#{atExitLine}\n\n"
 }
@@ -264,7 +264,7 @@ filesToAdd.shuffle.each_with_index do |f, i|
 	end
 
 	log "doing file #{i+1} of #{filesToAdd.count} (added #{added.count}" + (maxNumOfFilesToAdd ? " of #{maxNumOfFilesToAdd}" : '') + "): #{f}"
-	
+
 	if $db[f][:inPlayer]
 		log 'already in player'
 		if $rangeNeeded.include?($db[f][:inPlayer][:bpm].to_i)
@@ -274,9 +274,9 @@ filesToAdd.shuffle.each_with_index do |f, i|
 			f = makeTempCopy f, f, {:bpm => $db[f][:bpm], :flag => $db[f][:flag]}
 		end
 	end
-	
+
 	next if ! f.best? and ! checkSongLength f, tooLong
-	
+
 	# determine target bpm
 	if f.beatless?
 		log 'beatless file, no need to check/calculate bpm, will copy unchanged'
@@ -302,16 +302,16 @@ filesToAdd.shuffle.each_with_index do |f, i|
 			end
 		end
 	end
-	
+
 	# stretch if needed
 	if f.beatless? or newBpm == origBpm
 		srcFile = f
 	else
 		percent = sprintf '%+.1f', newBpm.to_f*100/origBpm - 100
 		log "target bpm #{newBpm} (#{percent}%), going to apply soundstretch"
-		
+
 		FileUtils.copy_entry f, './tmp.mp3', false, false, true
-		
+
 intTrap = trap 'INT', 'DEFAULT'
 
 		log (cmd = %w(lame --decode tmp.mp3 tmp-decoded.wav)).join ' '
@@ -343,25 +343,25 @@ intTrap = trap 'INT', 'DEFAULT'
 			lameDecodeProblem[f] = File.size('tmp-decoded.wav')
 			next
 		end
-		
+
 		log (cmd = %W(soundstretch tmp-decoded.wav tmp-stretched.wav -tempo=#{percent})).join ' '
 		raise 'soundstretch failed' if ! system *cmd
-		
+
 		log (cmd = %w(lame --nohist --preset medium tmp-stretched.wav tmp-result.mp3)).join ' '
 		raise 'error encoding mp3' if ! system *cmd
-		
+
 trap 'INT', intTrap
-		
+
 		srcFile = 'tmp-result.mp3'
 	end
-	
+
 	# name in player
 	trgFile = "#$playerDir/0000-#{f.beatless? ? 'BLS' : newBpm}---#{File.basename f}"
 	log "target file #{trgFile}"
-	raise "target file #{trgFile} already exists" if File.file? trgFile # the probability is small, imho no need to do more code
-	
-	
-	
+	raise "target file #{trgFile} already exists" if File.exists? trgFile # the probability is small, imho no need to do more code
+
+
+
 	# add file to the player
 	noSpace = false
 	while true
@@ -376,7 +376,7 @@ trap 'INT', intTrap
 			added[f] = File.size srcFile
 			$stat[:sizeAdded] += File.size srcFile
 			break
-			
+
 		rescue Errno::ENOSPC
 			FileUtils.rm trgFile # cleanup _is_required_ else next FileUtils.cp can get troubles with this partially copied file permissions
 			wrn 'NO SPACE LEFT'
@@ -416,7 +416,7 @@ trap 'INT', intTrap
 			noSpace = true
 			break
 		end
-		
+
 	end
 
 
@@ -431,7 +431,7 @@ trap 'INT', intTrap
 "
 
 	break if noSpace
-	
+
 	exitIfWasCtrlC
 end
 
