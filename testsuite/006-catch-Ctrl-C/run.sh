@@ -3,7 +3,7 @@
 set -e -o pipefail
 
 function myRun {
-	echo -n yyn | ruby $1 -dbf testsuite/006-catch-Ctrl-C/dbf.txt -prd . -r 148-166 | tee test-log.txt
+	echo -n yyn | ruby $* -dbf testsuite/006-catch-Ctrl-C/dbf.txt -prd . -r 148-166 | tee test-log.txt
 }
 
 echo first run
