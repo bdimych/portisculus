@@ -1,0 +1,3 @@
+  testsuite/006-catch-Ctrl-C/01. Different Reality.mp3: 148
+  testsuite/006-catch-Ctrl-C/14. Ночь перед Рождеством.mp3: 148
+  testsuite/006-catch-Ctrl-C/бумбараш золотухин наплевать наплевать надоело воевать.mp3: 166
