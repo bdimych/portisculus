@@ -3,7 +3,7 @@
 set -e -o pipefail
 
 echo -n yyn | ruby 2-fill-player.rb -dbf testsuite/006-catch-Ctrl-C/dbf.txt -prd . -r 148-166 | tee test-log.txt
-msgCount=$(sed -n '/preparing for adding loop/,/---- at_exit ok -----/p' test-log.txt | wc -l)
+msgCount=$(sed -n '/preparing for adding loop/,/---- at_exit ok -----/p' test-log.txt | grep '^[' | wc -l)
 echo msgCount is $msgCount
 if (( $msgCount < 80 ))
 then
