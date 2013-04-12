@@ -6,30 +6,37 @@ end
 STDOUT.sync = true
 
 totalSec = 10
-if chld = fork
-	puts "forked #{chld} from #$$"
-	srand
-	waitSec = 2 + rand * totalSec # если без добавки то всё таки слишком мало получается сигнал раньше чем создаётся at_exit
-	puts "waitSec #{waitSec}"
-	sleep waitSec
-	puts "sending INT to #{chld}"
-	Process.kill 'INT', chld
-p Process.wait
-p $?
-	exit
-end
-
-puts Process.ppid
-
 $msgDelay = totalSec.to_f/msgCount
 puts "msgCount: #{msgCount}, totalSec: #{totalSec}, msgDelay: #$msgDelay"
+
+if chld = fork
+	puts "parent #$$ child #{chld}"
+	trap('USR1') {
+		puts 'USR1 received'
+		srand
+		waitSec = rand * totalSec
+		puts "waitSec #{waitSec}"
+		sleep waitSec
+		puts "sending INT to #{chld}"
+		Process.kill 'INT', chld
+		Process.wait
+		if $?.exitstatus != 0
+			raise "child exitstatus nonzero: #{$?.inspect}"
+		end
+		exit
+	}
+	sleep totalSec * 2
+	raise 'totalSec*2 seconds still no signal'
+end
 
 module Kernel
 	alias :realputs :puts
 	def puts(*args)
 		realputs *args
 		if args[0] =~ /preparing for adding loop$/
-			puts 'start delaying'
+			ppid = Process.ppid
+			puts "start delaying, sending USR1 to #{ppid}"
+			Process.kill 'USR1', ppid
 			$doDelay = true
 		end
 		if $doDelay
