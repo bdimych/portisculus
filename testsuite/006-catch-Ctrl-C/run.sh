@@ -12,9 +12,12 @@ msgCount=$(sed -n '/preparing for adding loop/,/---- at_exit ok -----/p' test-lo
 echo msgCount is $msgCount
 if (( $msgCount < 65 ))
 then
-	echo ERROR: the log is too short $msgCount lines
+	echo ERROR: log is too short $msgCount lines
 	exit 1
 fi
+echo check test-log.txt
+grep '^3 added (0 tempCopy):$' test-log.txt
+[[ $(ls portisculus-1/*.mp3 | wc -l) == 3 ]]
 
 rm -rv portisculus-1 test-log.txt
 
