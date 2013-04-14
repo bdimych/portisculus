@@ -76,17 +76,21 @@ writeDb
 # prompt for second pass
 
 puts "\nfirst pass done"
-pass2 = $db.keys.sort do |a, b|
-	# сначала те которые я сам специально отметил byhands т.е. сам хочу посчитать вручную
+pass2 = $db.keys.select do |f|
+	f.withoutBpm?
+end
+# сортирую:
+# 1. слушать приятнее в случайном порядке
+# 2. те которые я сам специально отметил byhands первее
+srand
+pass2.sort! do |a, b|
 	if $db[a][:bpm] == 'byhands' and $db[b][:bpm] != 'byhands' then
 		-1
 	elsif $db[a][:bpm] != 'byhands' and $db[b][:bpm] == 'byhands' then
 		1
 	else
-		a.casecmp b
+		rand < 0.5 ? -1 : 1
 	end
-end.select do |f|
-	f.withoutBpm?
 end
 begin
 	if pass2.count == 0
