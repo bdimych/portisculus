@@ -43,9 +43,9 @@ pass1 = $db.keys.sort.select do |f|
 end
 pass1.each_with_index do |f, i|
 	log "doing file #{i+1} of #{pass1.count}: #{f}"
-	
+
 	FileUtils.copy_entry f, './tmp.mp3', false, false, true
-	
+
 	cmd = %w(lame --decode tmp.mp3 tmp-decoded.wav)
 	log cmd.join ' '
 	if ! system *cmd
@@ -100,7 +100,7 @@ begin
 				when ?n
 					exit
 				when ?l
-					puts pass2
+					puts pass2.map{|f| "[#{$db[f][:bpm]}] #{f}"}.sort
 					puts
 			end
 		end
@@ -126,14 +126,14 @@ pass2.each_with_index do |f, i|
 	puts "'#{'-' * (f.length+8+6)}'"
 
 	FileUtils.copy_entry f, './tmp.mp3', false, false, true
-	
+
 	wasCtrlC = false
 	trap('INT') {wasCtrlC = true} # let ctrl-c to pass inside
 	ENV['BYHANDS'] = f
 	bpm = %x(./count-bpm-by-hands.sh).chomp
 	raise Interrupt if wasCtrlC
 	trap 'INT', 'DEFAULT'
-	
+
 	puts
 	log "by hands result: \"#{bpm}\""
 	msg = ''
