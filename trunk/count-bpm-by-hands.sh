@@ -84,10 +84,10 @@ function reset {
 
 echo Starting mplayer
 echo
-trap 'stty echo; echo3 quit' EXIT
+trap 'if tty -s; then stty echo; fi; echo3 quit' EXIT
 exec 3> >(
 	cd "$(dirname "$BYHANDS")"
-	mplayer -slave -loop 0 -noautosub -quiet -identify "$(basename "$BYHANDS")" | perl -n -e '
+	mplayer -slave -noautosub -quiet -identify "$(basename "$BYHANDS")" | perl -n -e '
 		s/\r//g;
 		if (s/\e\[A\e\[K//) { # cut terminal control sequences
 			print if !/^$/
@@ -100,12 +100,12 @@ exec 3> >(
 		}
 	'
 )
-reset >tmp.txt
-usage >>tmp.txt
 sleep 1 # give mplayer some time to start and print his banner
 echo
 echo File: "$BYHANDS"
-cat tmp.txt
+reset
+usage
+echo3 loop 0 1 # infinite loop
 echo PLAYING NOW - TURN SOUND ON!
 echo
 
@@ -123,7 +123,7 @@ do
 		-) result skip ;;
 		=) result beatless ;;
 		'') echo ;; # enter
-		
+
 		' ')
 			if [[ $paused ]]
 			then
@@ -144,7 +144,7 @@ do
 			fi
 			printf 'Counter: %3u;   seconds: %2u;   bpm: %3u;   average bpm result: %3s\n' $counter $SECONDS $bpm $bpmAver
 			;;
-			
+
 		d)
 			if [[ ! $bpmAver ]]
 			then
