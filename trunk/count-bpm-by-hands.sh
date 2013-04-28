@@ -45,7 +45,7 @@ function echo3 {
 }
 
 function usage {
-	echo 'Usage: "h" or "u" - usage, "p" - pause, home/left/right - seek 0/-10/+10 seconds, space - count, "d" - counting done, "r" - reset counter, "n" - just go next, save as: "-" skipped, "=" beatless, "q" or ctrl-c - exit'
+	echo 'Usage: h or u - usage; i - info; p - pause; home/left/right - seek 0/-10/+10 sec; space - count; d - counting done; r - reset counter; n - just go next; save as: "-" skipped, "=" beatless; q or ctrl-c - exit'
 }
 
 function seek {
@@ -78,6 +78,12 @@ function reset {
 	echo Counter has been reset
 }
 
+function info {
+	echo Info:
+	echo File: "$BYHANDS"
+	echo3 pausing_keep get_percent_pos
+}
+
 
 
 # init
@@ -96,16 +102,20 @@ exec 3> >(
 			print if $1 eq "LENGTH"
 		}
 		else {
+			s/ANS_PERCENT_POSITION=(\d+)/Position: $1 %/; # get_percent_pos answer
+			next if /^\s*$/;
 			print
 		}
 	'
 )
-sleep 1 # give mplayer some time to start and print his banner
+sleep 1.5 # give mplayer some time to start and print his banner
 echo
-echo File: "$BYHANDS"
 reset
 usage
+info
 echo3 loop 0 1 # infinite loop
+sleep 0.5
+echo
 echo PLAYING NOW - TURN SOUND ON!
 echo
 
@@ -118,6 +128,7 @@ do
 	case $k in
 		q) result quit ;;
 		u|h) usage ;;
+		i) info ;;
 		r) reset ;;
 		n) result next ;;
 		-) result skip ;;
