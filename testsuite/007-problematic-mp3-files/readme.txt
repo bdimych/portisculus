@@ -29,4 +29,8 @@
 		-эта mplayer не открывает
 			-/cygdrive/d/Downloads/_ М У З Ы К А _/Dire Straits VINYLRip Discography/1979 - Communique (1979) [VINYL]/04. Communiqué.mp3: byhands
 			-ещё "11 недетское время" вроде
-				-найти и проверить
+				ДА -найти и проверить
+/cygdrive/d/Downloads/_ М У З Ы К А _/Diskoteka_Avariya-Diskografia/Альбомы и синглы/2011 - Недетское время/11. Недетское Время.mp3
+
+
+
