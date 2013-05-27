@@ -1,9 +1,11 @@
 Какие проблемы были с файлами:
 
+
 ---
 13.DJ Sim - Happy Organ.mp3
 	ruby-mp3info 0.8 неправильно определяет длину 911 секунд вместо 227
 	2013-04-29 09:46:57 написал багу https://github.com/moumar/ruby-mp3info/issues/28
+
 
 ---
 Имена с юникодовыми символами:
@@ -21,14 +23,20 @@
 Ну и короче обновил поставил SMPlayer 0.8.4 и всё стало нормально!, всё открывается! :)
 Вот такая позитивная история :) а тест на всякий случай хуже не будет! :)
 
----
-		/cygdrive/k/Users/bdimych/Downloads/GOA 1 - 42/Goa vol. 9/13 - S.u.n. Project - Hangin' Around.mp3
-		/cygdrive/k/Users/bdimych/Downloads/GOA 1 - 42/Goa vol. 18/06 - Mantrix - Gaia.mp3
-		/cygdrive/k/Users/bdimych/Downloads/GOA 1 - 42/Goa vol. 9/19 - Syn Sun - Ceremony.mp3
-		/cygdrive/k/Users/bdimych/Downloads/GOA 1 - 42/Goa vol. 4/10 - Cosma - Time Has Come.mp3
-		/cygdrive/k/Users/bdimych/Downloads/GOA 1 - 42/Goa vol. 17/17 - Psypsiq Jiouri - Histora De Un Sueno.mp3
-		/cygdrive/k/Users/bdimych/Downloads/GOA 1 - 42/Goa vol. 4/02 - Gmo - Koiau (Exclusive Track).mp3
 
-mp3info таги mp3 ошибки iconv
+---
+02 - Gmo - Koiau (Exclusive Track).mp3
+06 - Mantrix - Gaia.mp3
+10 - Cosma - Time Has Come.mp3
+13 - S.u.n. Project - Hangin' Around.mp3
+17 - Psypsiq Jiouri - Histora De Un Sueno.mp3
+19 - Syn Sun - Ceremony.mp3
+
+На этих файлах ruby-mp3info ошибался
+exception Iconv::IllegalSequence: ruby_18_encode - convert_to - decode_tag - read_id3v2_3_frames - parse_tags... и т.п. похожие по смыслу имена функций
+т.е. он не мог перекодировать mp3 таги.
+
+История получилась такая же как с mplayer-ом: сейчас руки дошли и оказалось что уже всё починили
+но тест не помешает поэтому оставляю.
 
 
