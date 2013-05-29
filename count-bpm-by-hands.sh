@@ -94,6 +94,7 @@ trap 'if tty -s; then stty echo; fi; echo3 quit' EXIT
 exec 3> >(
 	cd "$(dirname "$BYHANDS")"
 	mplayer -slave -noautosub -quiet -identify "$(basename "$BYHANDS")" | perl -n -e '
+		$| = 1;
 		s/\r//g;
 		if (s/\e\[A\e\[K//) { # cut terminal control sequences
 			print if !/^$/
