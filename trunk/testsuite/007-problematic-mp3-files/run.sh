@@ -19,7 +19,11 @@ dbf
 					dbf=tmp.txt
 					echo 'testsuite/007-problematic-mp3-files/mp3/19 - Syn Sun - Ceremony.mp3: byhands' >$dbf
 
+# test
 perl -e '$| = 1; print "l\r"; sleep 6; for (1..75) {print " "; select undef, undef, undef, 0.5} sleep 2; print "d\n\r"' | ruby ./1-create-bpm-database.rb -dbf $dbf 2>&1 | tee test-log.txt
+# check
+set -x
+grep -F '2 files remains without bpm, count them by hands (Y, n, (l)ist)? y' test-log.txt
 
 rm -v $dbf                               # test-log.txt
 
