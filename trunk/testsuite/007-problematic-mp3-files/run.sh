@@ -16,7 +16,10 @@ testsuite/007-problematic-mp3-files/mp3/17 - Psypsiq Jiouri - Histora De Un Suen
 testsuite/007-problematic-mp3-files/mp3/19 - Syn Sun - Ceremony.mp3										:147
 dbf
 
-# test
+
+
+# subtest 1
+echo subtest 1
 perl -e '
 	$| = 1;
 	print "l\r";
@@ -47,8 +50,30 @@ tail -n2 test-log.txt | grep -F 'skip writing, db was not changed: {:totalPaths=
 tail -n2 test-log.txt | grep -F 'the end: nil'
 grep -P '04. Communiqué.mp3: 1(19|20)$' $dbf
 grep -P '11. Недетское Время.mp3: 1(19|20)$' $dbf
+set +x
+echo ok, subtest 1 done
 
-rm -v $dbf test-log.txt
+
+
+# subtest 2
+echo subtest 2
+prd=$(dirname $0)/prd
+mkdir $prd
+echo -n yyn | ruby 2-fill-player.rb -dbf $dbf -prd $prd |& tee test-log.txt
+# check
+set -x
+grep '^there is no portisculus directory in player root so going to create' test-log.txt
+grep 'doing file . of 9 (added .): testsuite/007-problematic-mp3-files/mp3/13.DJ Sim - Happy Organ.mp3' -A2 test-log.txt | grep -F '227 sec (3 min 47 sec) - ok'
+grep -F -- '------------------------------ at_exit ok ------------------------------' test-log.txt
+grep '^9 added (0 tempCopy):$' test-log.txt
+grep '^0 tooLong:$' test-log.txt
+[[ $(wc -l $prd/portisculus-1/alreadyInPlayer.txt) == 9 ]]
+set +x
+
+
+
+rm -rv $dbf $prd test-log.txt
 
 echo ok! test done! ':)'
+
 
