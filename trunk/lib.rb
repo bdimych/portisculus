@@ -530,14 +530,16 @@ def checkSongLength file, tooLongHash
 	# когда поправят верну mp3info а пока mplayer
 	#
 	l = 0
-	IO.popen %W(mplayer -noconfig all -cache-min 0 -vo null -ao null -frames 0 -identify #{file}) + [:err => [:child, :out]] do |pipe|
-		pipe.each_line do |line|
-			if line =~/ID_LENGTH=(.+)/
-				l = $1.to_f.round
+	Dir.chdir File.dirname(file) do
+		IO.popen %W(mplayer -noconfig all -cache-min 0 -vo null -ao null -frames 0 -identify #{File.basename file}) + [:err => [:child, :out]] do |pipe|
+			pipe.each_line do |line|
+				if line =~/ID_LENGTH=(.+)/
+					l = $1.to_f.round
+				end
 			end
 		end
+		raise "mplayer failed #$?" if $? != 0
 	end
-	raise "mplayer failed #$?" if $? != 0
 	raise "could not get mp3 length #{l}" if l <= 0
 
 	msg = sec_min_sec(l)

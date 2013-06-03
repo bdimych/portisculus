@@ -5,15 +5,15 @@ set -e -o pipefail
 dbf=$0.dbf.txt
 
 cat >$dbf <<dbf
-testsuite/007-problematic-mp3-files/mp3/02 - Gmo - Koiau (Exclusive Track).mp3				:141
-testsuite/007-problematic-mp3-files/mp3/04. Communiqué.mp3														:byhands
-testsuite/007-problematic-mp3-files/mp3/06 - Mantrix - Gaia.mp3												:142
+`pwd`/testsuite/007-problematic-mp3-files/mp3/02 - Gmo - Koiau (Exclusive Track).mp3	:141
+`pwd`/testsuite/007-problematic-mp3-files/mp3/04. Communiqué.mp3											:byhands
+`pwd`/testsuite/007-problematic-mp3-files/mp3/06 - Mantrix - Gaia.mp3									:142
 testsuite/007-problematic-mp3-files/mp3/10 - Cosma - Time Has Come.mp3								:143
 testsuite/007-problematic-mp3-files/mp3/11. Недетское Время.mp3												:byhands
 testsuite/007-problematic-mp3-files/mp3/13 - S.u.n. Project - Hangin' Around.mp3			:144
-testsuite/007-problematic-mp3-files/mp3/13.DJ Sim - Happy Organ.mp3										:145
+`pwd`/testsuite/007-problematic-mp3-files/mp3/13.DJ Sim - Happy Organ.mp3							:145
 testsuite/007-problematic-mp3-files/mp3/17 - Psypsiq Jiouri - Histora De Un Sueno.mp3	:146
-testsuite/007-problematic-mp3-files/mp3/19 - Syn Sun - Ceremony.mp3										:147
+`pwd`/testsuite/007-problematic-mp3-files/mp3/19 - Syn Sun - Ceremony.mp3							:147
 dbf
 
 
@@ -37,7 +37,7 @@ perl -e '
 # check
 set -x
 grep -F '2 files remains without bpm, count them by hands (Y, n, (l)ist)? y' test-log.txt
-grep -F '[byhands] testsuite/007-problematic-mp3-files/mp3/04. Communiqué.mp3' test-log.txt
+grep -F "[byhands] $(pwd)/testsuite/007-problematic-mp3-files/mp3/04. Communiqué.mp3" test-log.txt
 grep -F '[byhands] testsuite/007-problematic-mp3-files/mp3/11. Недетское Время.mp3' test-log.txt
 grep -P '^\QPlaying 04. Communiqué.mp3.' test-log.txt
 grep -P '^\QPlaying 11. Недетское Время.mp3.' test-log.txt
