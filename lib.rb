@@ -523,7 +523,24 @@ end
 
 def checkSongLength file, tooLongHash
 	log 'checkSongLength'
-	msg = sec_min_sec(l = Mp3Info.new(file).length.round)
+
+	#
+	# l = Mp3Info.new(file).length.round
+	# нашёл багу mp3info может неправильно определить длину https://github.com/moumar/ruby-mp3info/issues/28
+	# когда поправят верну mp3info а пока mplayer
+	#
+	l = 0
+	IO.popen %W(mplayer -noconfig all -cache-min 0 -vo null -ao null -frames 0 -identify #{file}) + [:err => [:child, :out]] do |pipe|
+		pipe.each_line do |line|
+			if line =~/ID_LENGTH=(.+)/
+				l = $1.to_f.round
+			end
+		end
+	end
+	raise "mplayer failed #$?" if $? != 0
+	raise "could not get mp3 length #{l}" if l <= 0
+
+	msg = sec_min_sec(l)
 	if l > 15*60
 		tooLongHash[file] = l
 		wrn "#{msg} - TOO LONG!, should be skipped, tooLongHash appended"
