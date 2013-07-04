@@ -43,23 +43,31 @@ exception Iconv::IllegalSequence: ruby_18_encode - convert_to - decode_tag - rea
 ---
 каталог lame-decode-error/ и 13.DJ Sim - Happy Organ.mp3
 
+История такая.
 "13.DJ Sim - Happy Organ.mp3" оказался дважды проблемным.
-Когда я поправил измерение длины тест всё равно не прошёл т.к. теперь lame не смог его декодировать:
-	"Error: sample frequency has changed in MP3 file - not supported".
-Эту ошибку я уже видел и она у меня тоже была записана.
-И логично выглядит
+Когда я поправил измерение длины тест всё равно не проходил.
+Теперь ошибался lame:
+...
+		[20:08:44.504] doing file 5 of 9 (added 4): testsuite/007-problematic-mp3-files/mp3/13.DJ Sim - Happy Organ.mp3
+		[20:08:44.504] checkSongLength
+		[20:08:44.633] 227 sec (3 min 47 sec) - ok
+		[20:08:44.633] original bpm 145
+		[20:08:44.633] out of the needed range, will calculate new
+		[20:08:44.633] allowed range: 129-195
+		[20:08:44.633] intersection: 150-153
+		[20:08:44.633] target bpm 153 (+5.5%), going to apply soundstretch
+		[20:08:44.695] lame --decode tmp.mp3 tmp-decoded.wav
+		input:  tmp.mp3  (16 kHz, 1 channel, MPEG-2 Layer I)
+		output: tmp-decoded.wav  (16 bit, Microsoft WAVE)
+		skipping initial 241 samples (encoder+decoder delay)
+		Error: sample frequency has changed in MP3 file - not supported
 
-Эта известная ошибка у меня уже тоже была записана
-
-
-Эту ошибку я уже и раньше видел и поэтому решил ещё найти несколько таких же файлов.
-
-
-
-, тест дли, длина определяется правильно, но тепер другая ошибка получается:
-
-этот HappyOrgan оказался не только с длиной проблема но ещё его lame не может декодировать
-эту ошибку я и раньше видел и когда я поправил багу с длиной
-HappyOrgan оказался решил как раз хороший повод найти ещё других таких же
+		[20:08:44.774] WARNING: tmp-decoded.wav is too small, probably lame failed
+...
+Эта ошибка уже была у меня записана и я решил её и делать следующей.
+И специально для неё нашёл ещё несколько таких же проблемных файлов и добавил lame-decode-error/
+PS
+lame 3.99.5
+время: сейчас когда я пишу - 7 июля 2013, а увидел я эту багу наверно где-то в конце 2012
 
 
