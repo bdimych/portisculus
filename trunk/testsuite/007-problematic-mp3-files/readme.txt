@@ -43,10 +43,9 @@ exception Iconv::IllegalSequence: ruby_18_encode - convert_to - decode_tag - rea
 ---
 каталог lame-decode-error/ и 13.DJ Sim - Happy Organ.mp3
 
-История такая.
+Тут история такая.
 "13.DJ Sim - Happy Organ.mp3" оказался дважды проблемным.
-Когда я поправил измерение длины тест всё равно не проходил.
-Теперь ошибался lame:
+Когда я поправил измерение длины то тест всё равно не проходил - теперь ошибался lame:
 ...
 		[20:08:44.504] doing file 5 of 9 (added 4): testsuite/007-problematic-mp3-files/mp3/13.DJ Sim - Happy Organ.mp3
 		[20:08:44.504] checkSongLength
@@ -64,10 +63,12 @@ exception Iconv::IllegalSequence: ruby_18_encode - convert_to - decode_tag - rea
 
 		[20:08:44.774] WARNING: tmp-decoded.wav is too small, probably lame failed
 ...
-Эта ошибка уже была у меня записана и я решил её и делать следующей.
+И т.к. эта ошибка уже была у меня записана раньше то я решил её и делать следующей.
 И специально для неё нашёл ещё несколько таких же проблемных файлов и добавил lame-decode-error/
 PS
-lame 3.99.5
-время: сейчас когда я пишу - 7 июля 2013, а увидел я эту багу наверно где-то в конце 2012
+Версия lame 3.99.5.
+Время: сейчас когда я пишу - 7 июля 2013, а увидел я эту багу примерно весной 2012.
+(Кстати погуглил сейчас "lame Error: sample frequency has changed in MP3 file - not supported"
+результатов много, подробно не смотрел но судя по количеству бага известная)
 
 
