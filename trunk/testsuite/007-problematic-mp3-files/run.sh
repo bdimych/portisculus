@@ -74,6 +74,7 @@ grep "doing file [0-9]\+ of 15 (added [0-9]\+): $(pwd)/testsuite/007-problematic
 grep -F -- '------------------------------ at_exit ok ------------------------------' test-log.txt
 grep '^15 added (0 tempCopy):$' test-log.txt
 grep '^0 tooLong:$' test-log.txt
+[[ $(grep 'SUCCESS!' test-log.txt | wc -l) == 15 ]]
 [[ $(wc -l $prd/portisculus-1/alreadyInPlayer.txt) == 15 ]]
 set +x
 
