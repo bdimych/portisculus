@@ -66,7 +66,7 @@ echo ok, subtest 1 done
 echo subtest 2
 prd=$(dirname $0)/prd
 mkdir $prd
-echo -n yyn | ruby 2-fill-player.rb -dbf $dbf -prd $prd |& tee test-log.txt
+echo -n yyn | ruby 2-fill-player.rb -dbf $dbf -prd $prd | tee test-log.txt
 # check
 set -x
 grep '^there is no portisculus directory in player root so going to create' test-log.txt
@@ -74,7 +74,7 @@ grep "doing file [0-9]\+ of 15 (added [0-9]\+): $(pwd)/testsuite/007-problematic
 grep -F -- '------------------------------ at_exit ok ------------------------------' test-log.txt
 grep '^15 added (0 tempCopy):$' test-log.txt
 grep '^0 tooLong:$' test-log.txt
-[[ $(wc -l $prd/portisculus-1/alreadyInPlayer.txt) == 9 ]]
+[[ $(wc -l $prd/portisculus-1/alreadyInPlayer.txt) == 15 ]]
 set +x
 
 
