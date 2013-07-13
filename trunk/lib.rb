@@ -32,6 +32,8 @@ end
 
 raise 'could not run mplayer' if ! system('mplayer >/dev/null')
 
+raise 'could not run ffmpeg' if ! system('ffmpeg -version >/dev/null')
+
 
 
 
