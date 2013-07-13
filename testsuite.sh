@@ -6,7 +6,7 @@ find ./testsuite -name run.sh | while read f
 do
 	echo - - - - - doing test: "$f" - - - - -
 	"$f"
-	echo test "$f" passed
+	echo test passed "$f"
 	echo
 done
 echo testsuite succeeded!
