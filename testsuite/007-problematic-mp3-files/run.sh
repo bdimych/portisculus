@@ -75,7 +75,7 @@ grep -F -- '------------------------------ at_exit ok --------------------------
 grep '^15 added (0 tempCopy):$' test-log.txt
 grep '^0 tooLong:$' test-log.txt
 [[ $(grep 'SUCCESS!' test-log.txt | wc -l) == 15 ]]
-[[ $(wc -l $prd/portisculus-1/alreadyInPlayer.txt) == 15 ]]
+[[ $(wc -l <$prd/portisculus-1/alreadyInPlayer.txt) == 15 ]]
 set +x
 
 
