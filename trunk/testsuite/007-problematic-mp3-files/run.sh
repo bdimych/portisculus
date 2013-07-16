@@ -30,7 +30,7 @@ echo subtest 1
 perl -e '
 	$| = 1;
 	print "l\r";
-	sleep 6;
+	sleep 15;
 	for (1..2) {
 		for (1..75) {
 			print " ";
@@ -38,7 +38,7 @@ perl -e '
 		}
 		sleep 1;
 		print "d\n\r";
-		sleep 3
+		sleep 10
 	}
 ' | ruby ./1-create-bpm-database.rb -dbf $dbf 2>&1 | tee test-log.txt
 # check
