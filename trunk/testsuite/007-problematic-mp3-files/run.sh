@@ -66,7 +66,7 @@ echo ok, subtest 1 done
 echo subtest 2
 prd=$(dirname $0)/prd
 mkdir $prd
-echo -n yyn | ruby 2-fill-player.rb -dbf $dbf -prd $prd | tee test-log.txt
+echo -n yyn | ./2-fill-player.rb -dbf $dbf -prd $prd | tee test-log.txt
 # check
 set -x
 grep '^there is no portisculus directory in player root so going to create' test-log.txt
