@@ -46,7 +46,7 @@ pass1.each_with_index do |f, i|
 
 	FileUtils.copy_entry f, './tmp.mp3', false, false, true
 
-	cmd = %w(ffmpeg -nostdin -y -vn -i tmp.mp3 tmp-decoded.wav)
+	cmd = %w(ffmpeg -nostdin -y -vn -i tmp.mp3 -vn tmp-decoded.wav)
 	log cmd.join ' '
 	if ! system *cmd
 		raise "error decoding mp3 #$?"
