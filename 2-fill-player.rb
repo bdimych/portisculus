@@ -308,7 +308,7 @@ filesToAdd.shuffle.each_with_index do |f, i|
 		# просто чтобы не ждать пока долго перекодирует
 		# при этом никакой логической ошибки не будет т.к. копировать на плеер ещё не начинали
 		intTrap = trap 'INT', 'DEFAULT'
-		log (cmd = %W(ffmpeg -nostdin -y -vn -i tmp.mp3 -vn -ab 128k -af atempo=#{coef} tmp-result.mp3)).join ' '
+		log (cmd = %W(ffmpeg -nostdin -y -i tmp.mp3 -ab 128k -af atempo=#{coef} tmp-result.mp3)).join ' '
 		raise "ffmpeg failed #$?" if ! system *cmd, :in => '/dev/null'
 		trap 'INT', intTrap
 
