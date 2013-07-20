@@ -41,6 +41,7 @@ function check {
 
 # https://translate.google.com/
 # https://en.wikipedia.org/wiki/List_of_languages_by_total_number_of_speakers
+check 'Russian Русский'
 check 'Chinese 中国的'
 check 'Chinese 中國的'
 check 'Hindi हिंदी'
@@ -56,7 +57,6 @@ check 'Turkish Türk'
 check 'Urdu اردو'
 check 'Czech čeština'
 check 'Just some symbols ◄ ┬ UTF-8 ┴ ►'
-check 'Russian Русский'
 
 echo success
 
