@@ -1,7 +1,9 @@
 #!/bin/bash
 
 function check {
-	echo + + + + + check "$1" + + + + +
+	echo + + + + + "$1" + + + + +
+	echo
+	sleep 1
 
 	dbf="testsuite/008-dbf-prd-filesystem-locale-encoing//$1.txt"
 	prd="testsuite//008-dbf-prd-filesystem-locale-encoing/$1"
@@ -33,13 +35,28 @@ function check {
 	rm -rfv "$dbf" "$prd" test-log-*.txt
 
 	echo
-	echo + + + + + "$1" - ok
+	echo + + + + + "$1" ok
 	echo
 }
 
+# https://translate.google.com/
+# https://en.wikipedia.org/wiki/List_of_languages_by_total_number_of_speakers
 check 'Chinese 中国的'
+check 'Chinese 中國的'
+check 'Hindi हिंदी'
+check 'Arabic العربية'
+check 'French français'
+check 'Portuguese português'
+check 'Spanish español'
+check 'Japanese 日本人'
+check 'Korean 한국의'
+check 'Hebrew עברית'
+check 'Bengali বাংলা'
+check 'Turkish Türk'
+check 'Urdu اردو'
+check 'Czech čeština'
+check 'Just some symbols ◄ ┬ UTF-8 ┴ ►'
 check 'Russian Русский'
-#check 'Hindi हिंदी'
 
 echo success
 
