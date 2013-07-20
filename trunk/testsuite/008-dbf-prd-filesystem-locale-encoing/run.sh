@@ -1,11 +1,24 @@
 #!/bin/bash
 
-set -x
-{
-	ruby 2-fill-player.rb -dbf 'testsuite//008-utf8-dbf-prd/chinese 中國的.txt'
-	ruby 2-fill-player.rb -dbf 'testsuite//008-utf8-dbf-prd/chinese 中国的.txt'
-	ruby 2-fill-player.rb -dbf 'testsuite//008-utf8-dbf-prd/russian русский.txt'
-} | tee test-log.txt
+function check {
+	echo + + + + + check "$1" + + + + +
+
+	dbf="testsuite/008-dbf-prd-filesystem-locale-encoing//$1.txt"
+	prd="testsuite//008-dbf-prd-filesystem-locale-encoing/$1"
+	rm -rfv "$dbf" "$prd"
+
+	ruby 2-fill-player.rb -dbf "$dbf" -prd "$prd/" |& tee test-log.txt
+	date >"$dbf"
+	ruby ./2-fill-player.rb -dbf "./$dbf" -prd ".//$prd" |& tee test-log.txt
+	mkdir "$prd"
+	echo -n n | ruby 2-fill-player.rb -dbf ".//$dbf" -prd "$prd//" |& tee test-log.txt
+
+	echo
+}
+
+check 'Chinese 中国的'
+check 'Hindi हिंदी'
+check 'Russian Русский'
 
 rm test-log.txt
 
