@@ -13,14 +13,14 @@ function check {
 	mkdir "$prd"
 	echo -n n | ruby 2-fill-player.rb -dbf ".//$dbf" -prd "$prd//" |& tee test-log.txt
 
+	rm -rfv "$dbf" "$prd" test-log.txt
+
 	echo
 }
 
 check 'Chinese 中国的'
 check 'Hindi हिंदी'
 check 'Russian Русский'
-
-rm test-log.txt
 
 echo success
 
