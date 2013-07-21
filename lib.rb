@@ -1,5 +1,12 @@
 # VERY important for ruby 1.9
 Encoding.default_internal = Encoding.default_external = 'binary'
+# 2013-07-21 21:07:44 ЗАМЕТКА.
+# В доках написано что default_internal действует на ARGV,
+# но видимо ARGV создаётся раньше чем Руби сюда доходит
+# и в итоге кодировка ARGV остаётся умолчальная соответствующая системной локали
+# (вот если задать в комстроке "ruby -Ebinary" то ARGV будут binary).
+# Специально сделал тест testsuite/008-dbf-prd-filesystem-locale-encoing/
+# в цигвине на русской вин7 тест не работает без force_encoding для dbf и prd (ruby 1.9.3p429 (2013-05-15) [i386-cygwin])
 
 
 
