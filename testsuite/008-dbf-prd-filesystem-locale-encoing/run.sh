@@ -32,7 +32,7 @@ function check {
 	grep -Fx "there is no portisculus directory in player root so going to create \"$cleanPath/portisculus-1\", proceed? (Y, n) n" test-log-3.txt
 	set +ex
 
-	rm -rfv "$dbf" "$prd" test-log-*.txt
+	rm -rv "$dbf" "$prd" test-log-*.txt
 
 	echo
 	echo + + + + + "$1" ok
