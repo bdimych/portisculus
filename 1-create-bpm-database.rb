@@ -170,7 +170,7 @@ pass2.each_with_index do |f, i|
 	puts
 	if ! msg.empty?
 		puts msg
-		exit if 'q' == readChar('press any key to continue or "q" to quit ')
+		exit if 'q' == readChar('press any key to continue or "q" or ctrl-c to quit ')
 		puts
 	end
 end
