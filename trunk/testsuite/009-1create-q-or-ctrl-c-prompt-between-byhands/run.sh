@@ -44,72 +44,28 @@ sleep 3
 echo
 tail -n 1 test-log.txt | grep -F 'press any key to continue or "q" or ctrl-c to quit'
 sleep 2
-simulateKey ctrl+c
-															sleep 1
-															simulateKey enter
-sleep 3
-jobs -l
+kill -INT %1
+sleep 2
+echo jobs
+jobs -l >jobs.txt
+cat jobs.txt
 
+if [[ $cygwin ]]
+then
+	if grep 'Running \+ruby' jobs.txt
+	then
+		simulateKey enter
+		sleep 2
+	else
+		echo WARNING: it seems that the https://bugs.ruby-lang.org/issues/8708 is now fixed, please modify this test accordingly
+		exit 1
+	fi
 
+else # linux
+	:
+fi
 
-
-# mkfifo test-input-fifo.txt
-# ruby ./1-create-bpm-database.rb -dbf dbf.txt <test-input-fifo.txt &>test-log.txt &
-# rubyPid=$!
-# echo rubyPid is \"$rubyPid\"
-# exec 3>test-input-fifo.txt
-# tail -f test-log.txt &
-
-# echo -n y >&3
-# sleep 10
-# echo -n = >&3
-# sleep 1
-# echo -n y >&3
-# sleep 3
-# echo
-# tail -n 1 test-log.txt | grep -F 'press any key to continue or "q" or ctrl-c to quit'
-
-# cmd="kill -INT $rubyPid"
-# echo $cmd
-# $cmd
-
-# if uname | grep -i cygwin
-# then
-	# echo we are in the Cygwin
-# else
-	# echo we are not in the Cygwin
-# fi
-
-# exit
-
-
-
-
-# echo
-# echo = = = = = = = = = = = = = = = = = = = = check q = = = = = = = = = = = = = = = = = = = =
-# echo
-
-# echo silence-30-sec.mp3: byhands >dbf.txt
-# echo second-dummy-file.mp3: soundstretchFailed >>dbf.txt
-
-# {
-	# echo -n y
-	# sleep 10
-	# echo -n =
-	# sleep 1
-	# echo -n y
-	# sleep 3
-	# echo >&2
-	# tail -n 1 test-log.txt | grep -F 'press any key to continue or "q" or ctrl-c to quit' >&2
-	# echo -n q
-# } | ruby ./1-create-bpm-database.rb -dbf dbf.txt |& tee test-log.txt &
-
-# wait %1
-
-
-
-
-rm -v silence-30-sec.mp3 second-dummy-file.mp3 dbf.txt test-log.txt
+rm -v silence-30-sec.mp3 second-dummy-file.mp3 dbf.txt test-log.txt jobs.txt
 
 echo ok, $0 done
 
