@@ -2,26 +2,28 @@
 
 set -e -o pipefail
 
-ffmpeg -n -f lavfi -i aevalsrc=0 -t 30 silence-30-sec.mp3
-touch second-dummy-file.mp3
-
 cygwin=
 if uname | grep -i cygwin &>/dev/null
 then
+	echo we are in cygwin
 	cygwin=yes
+else
+	echo we are in linux
 fi
+
+ffmpeg -n -f lavfi -i aevalsrc=0 -t 30 silence-30-sec.mp3
+touch second-dummy-file.mp3
 
 function simulateKey {
 	key=$1
 	if [[ $cygwin ]]
 	then
-		if [[ $key == = ]]
-		then
-			key=plus
-		fi
+		[[ $key == = ]] && key=plus
 		nircmd sendkeypress $key
-	else
-		:
+	else # linux
+		[[ $key == = ]] && key=KP_Equal
+		[[ $key == enter ]] && key=Return
+		xdotool key $key
 	fi
 }
 
@@ -70,7 +72,11 @@ then
 	fi
 
 else # linux
-	:
+	if [[ -s jobs.txt ]]
+	then
+		echo jobs.txt is not empty
+		exit 1
+	fi
 fi
 
 set -x
