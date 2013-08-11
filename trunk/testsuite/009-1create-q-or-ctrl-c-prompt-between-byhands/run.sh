@@ -56,6 +56,14 @@ then
 	then
 		simulateKey enter
 		sleep 2
+		echo jobs after Enter
+		jobs -l >jobs.txt
+		cat jobs.txt
+		if [[ -s jobs.txt ]]
+		then
+			echo jobs.txt is not empty
+			exit 1
+		fi
 	else
 		echo WARNING: it seems that the https://bugs.ruby-lang.org/issues/8708 is now fixed, please modify this test accordingly
 		exit 1
