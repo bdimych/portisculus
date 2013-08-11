@@ -65,6 +65,15 @@ else # linux
 	:
 fi
 
+set -x
+grep '^\[at_exit\] \[[0-9:.]\+\] the end: Interrupt$' test-log.txt
+grep 'lib\.rb:[0-9]\+:in .sysread.: Interrupt$' test-log.txt
+grep 'from '"$(pwd)"'/lib\.rb:[0-9]\+:in .readChar.$' test-log.txt
+tail -n1 test-log.txt | grep "from ./1-create-bpm-database.rb:[0-9]\+:in .<main>."
+set +x
+
+
+
 rm -v silence-30-sec.mp3 second-dummy-file.mp3 dbf.txt test-log.txt jobs.txt
 
 echo ok, $0 done
