@@ -14,6 +14,20 @@ fi
 ffmpeg -n -f lavfi -i aevalsrc=0 -t 30 silence-30-sec.mp3
 touch second-dummy-file.mp3
 
+myWinTitle='xterm portisculus test 009'
+echo -ne "\e]0;$myWinTitle\a" # set xterm window title
+if [[ $cygwin ]]
+then
+	echo in cygwin check the xterm window is in the foreground
+	gcc testsuite/009-1create-q-or-ctrl-c-prompt-between-byhands/printForegroundWindowTitle.c -o printForegroundWindowTitle.exe
+	while [[ $(./printForegroundWindowTitle.exe) != $myWinTitle ]]
+	do
+		echo we are not in the foreground
+		for i in $(seq 6); do nircmd beep 2000 350; sleep 0.5; done & nircmd win flash title "$myWinTitle" 7 500
+		read -p 'this test requires that this window must be in the foreground, press Enter to continue . . . '
+	done
+fi
+
 function simulateKey {
 	key=$1
 	if [[ $cygwin ]]
@@ -46,7 +60,7 @@ sleep 3
 echo
 tail -n 1 test-log.txt | grep -F 'press any key to continue or "q" or ctrl-c to quit'
 sleep 2
-kill -INT %1
+kill -INT %+
 sleep 2
 echo jobs
 jobs -l >jobs.txt
@@ -88,7 +102,7 @@ set +x
 
 
 
-rm -v silence-30-sec.mp3 second-dummy-file.mp3 dbf.txt test-log.txt jobs.txt
+rm -v silence-30-sec.mp3 second-dummy-file.mp3 dbf.txt test-log.txt jobs.txt printForegroundWindowTitle.exe
 
 echo ok, $0 done
 
