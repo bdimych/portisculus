@@ -11,20 +11,27 @@ else
 	echo we are in linux
 fi
 
-ffmpeg -n -f lavfi -i aevalsrc=0 -t 30 silence-30-sec.mp3
-touch second-dummy-file.mp3
-
 myWinTitle='xterm portisculus test 009'
 echo -ne "\e]0;$myWinTitle\a" # set xterm window title
 if [[ $cygwin ]]
 then
 	echo in cygwin check the xterm window is in the foreground
+	windowWasInTheBackground=
 	gcc testsuite/009-1create-q-or-ctrl-c-prompt-between-byhands/printForegroundWindowTitle.c -o printForegroundWindowTitle.exe
 	while [[ $(./printForegroundWindowTitle.exe) != $myWinTitle ]]
 	do
 		echo we are not in the foreground
 		for i in $(seq 10); do nircmd beep 2000 350; sleep 0.5; done & nircmd win flash title "$myWinTitle" 10 500
-		read -p 'this test requires that this window must be in the foreground, press Enter to continue . . . '
+		echo '
+* * * * * * * * * * * * * * * WARNING * * * * * * * * * * * * * * *
+* Warning!                                                        *
+* This test requires this window must be in the foreground.       *
+* And please do not switch the window until the end of the test.  *
+*                                                                 *
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'
+		read -p 'Press Enter to continue . . . '
+		windowWasInTheBackground=1
 	done
 fi
 
@@ -40,6 +47,9 @@ function simulateKey {
 		xdotool key $key
 	fi
 }
+
+ffmpeg -n -f lavfi -i aevalsrc=0 -t 30 silence-30-sec.mp3
+touch second-dummy-file.mp3
 
 echo
 echo = = = = = = = = = = = = = = = = = = = = check int = = = = = = = = = = = = = = = = = = = =
@@ -105,4 +115,9 @@ set +x
 rm -v silence-30-sec.mp3 second-dummy-file.mp3 dbf.txt test-log.txt jobs.txt printForegroundWindowTitle.exe
 
 echo ok, $0 done
+
+if [[ $windowWasInTheBackground ]]
+then
+	nircmd infobox 'The test has ended, now you can switch to other windows.' 'The portisculus test 009 has ended'
+fi
 
