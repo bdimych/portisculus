@@ -112,7 +112,8 @@ set +x
 
 
 
-rm -v silence-30-sec.mp3 second-dummy-file.mp3 dbf.txt test-log.txt jobs.txt printForegroundWindowTitle.exe
+rm -v silence-30-sec.mp3 second-dummy-file.mp3 dbf.txt test-log.txt jobs.txt
+[[ $cygwin ]] && rm -v printForegroundWindowTitle.exe
 
 echo ok, $0 done
 
