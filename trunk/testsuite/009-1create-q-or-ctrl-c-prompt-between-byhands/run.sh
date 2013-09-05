@@ -23,7 +23,7 @@ then
 	while [[ $(./printForegroundWindowTitle.exe) != $myWinTitle ]]
 	do
 		echo we are not in the foreground
-		for i in $(seq 6); do nircmd beep 2000 350; sleep 0.5; done & nircmd win flash title "$myWinTitle" 7 500
+		for i in $(seq 10); do nircmd beep 2000 350; sleep 0.5; done & nircmd win flash title "$myWinTitle" 10 500
 		read -p 'this test requires that this window must be in the foreground, press Enter to continue . . . '
 	done
 fi
