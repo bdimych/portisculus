@@ -11,6 +11,37 @@ else
 	echo we are in linux
 fi
 
+function simulateKey {
+	key=$1
+	if [[ $cygwin ]]
+	then
+		[[ $key == = ]] && key=plus
+		nircmd sendkeypress $key
+	else # linux
+		[[ $key == = ]] && key=KP_Equal
+		[[ $key == enter ]] && key=Return
+		xdotool key $key
+	fi
+}
+
+function printForegroundWindowTitle {
+	if [[ $cygwin ]]
+	then
+		gcc testsuite/009-1create-q-or-ctrl-c-prompt-between-byhands/printForegroundWindowTitle.c -o printForegroundWindowTitle.exe
+		./printForegroundWindowTitle.exe
+	else
+		xdotool getactivewindow getwindowname
+	fi
+}
+
+function attractAttention {
+	if [[ $cygwin ]]
+	then
+		for i in $(seq 10); do nircmd beep 2000 350; sleep 0.5; done & nircmd win flash title "$myWinTitle" 10 500
+	else
+	fi
+}
+
 myWinTitle='xterm portisculus test 009'
 echo -ne "\e]0;$myWinTitle\a" # set xterm window title
 if [[ $cygwin ]]
@@ -34,19 +65,6 @@ then
 		windowWasInTheBackground=1
 	done
 fi
-
-function simulateKey {
-	key=$1
-	if [[ $cygwin ]]
-	then
-		[[ $key == = ]] && key=plus
-		nircmd sendkeypress $key
-	else # linux
-		[[ $key == = ]] && key=KP_Equal
-		[[ $key == enter ]] && key=Return
-		xdotool key $key
-	fi
-}
 
 ffmpeg -n -f lavfi -i aevalsrc=0 -t 30 silence-30-sec.mp3
 touch second-dummy-file.mp3
