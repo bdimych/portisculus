@@ -24,10 +24,13 @@ function simulateKey {
 	fi
 }
 
+if [[ $cygwin ]]
+then
+	gcc testsuite/009-1create-q-or-ctrl-c-prompt-between-byhands/printForegroundWindowTitle.c -o printForegroundWindowTitle.exe
+fi
 function printForegroundWindowTitle {
 	if [[ $cygwin ]]
 	then
-		gcc testsuite/009-1create-q-or-ctrl-c-prompt-between-byhands/printForegroundWindowTitle.c -o printForegroundWindowTitle.exe
 		./printForegroundWindowTitle.exe
 	else
 		xdotool getactivewindow getwindowname
