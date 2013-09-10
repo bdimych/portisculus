@@ -13,5 +13,5 @@ pack .b
 bind . <Return> {exit}
 
 focus .b
-after 3000 {exit}
+after 2000 {exit}
 
