@@ -1,0 +1,17 @@
+#!/usr/bin/wish
+
+wm title . "portisculus test 009"
+
+wm geometry . +[winfo vrootwidth .]+[winfo vrootheight .]
+bind . <Configure> {
+	wm geometry . +[expr ([winfo vrootwidth .]-[winfo width .])/2]+[expr ([winfo vrootheight .]-[winfo height .])/2]
+}
+
+button .b -text "portisculus test 009 please make terminal window foreground!" -command {exit}
+pack .b
+
+bind . <Return> {exit}
+
+focus .b
+after 3000 {exit}
+
