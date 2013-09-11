@@ -105,7 +105,6 @@ then
 		echo WARNING: it seems that the https://bugs.ruby-lang.org/issues/8708 is now fixed, please modify this test accordingly
 		exit 1
 	fi
-
 else # linux
 	if [[ -s jobs.txt ]]
 	then
@@ -120,6 +119,33 @@ grep 'lib\.rb:[0-9]\+:in .sysread.: Interrupt$' test-log.txt
 grep 'from '"$(pwd)"'/lib\.rb:[0-9]\+:in .readChar.$' test-log.txt
 tail -n1 test-log.txt | grep "from ./1-create-bpm-database.rb:[0-9]\+:in .<main>."
 set +x
+
+
+
+echo
+echo = = = = = = = = = = = = = = = = = = = = check q = = = = = = = = = = = = = = = = = = = =
+echo
+
+echo silence-30-sec.mp3: byhands >dbf.txt
+echo second-dummy-file.mp3: soundstretchFailed >>dbf.txt
+
+ruby ./1-create-bpm-database.rb -dbf dbf.txt |& tee test-log.txt &
+
+sleep 6
+simulateKey y
+sleep 10
+simulateKey =
+sleep 1
+simulateKey y
+sleep 3
+echo
+tail -n 1 test-log.txt | grep -F 'press any key to continue or "q" or ctrl-c to quit'
+sleep 2
+simulateKey q
+sleep 2
+echo jobs
+jobs -l >jobs.txt
+cat jobs.txt
 
 
 
