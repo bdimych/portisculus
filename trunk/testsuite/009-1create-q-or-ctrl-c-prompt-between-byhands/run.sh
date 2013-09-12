@@ -87,6 +87,7 @@ echo jobs
 jobs -l >jobs.txt
 cat jobs.txt
 
+# check jobs.txt
 if [[ $cygwin ]]
 then
 	if grep 'Running \+ruby' jobs.txt
@@ -113,6 +114,7 @@ else # linux
 	fi
 fi
 
+# check log
 set -x
 grep '^\[at_exit\] \[[0-9:.]\+\] the end: Interrupt$' test-log.txt
 grep 'lib\.rb:[0-9]\+:in .sysread.: Interrupt$' test-log.txt
@@ -129,11 +131,11 @@ echo
 echo silence-30-sec.mp3: byhands >dbf.txt
 echo second-dummy-file.mp3: soundstretchFailed >>dbf.txt
 
-ruby ./1-create-bpm-database.rb -dbf dbf.txt |& tee test-log.txt &
+ruby 1-create-bpm-database.rb -dbf dbf.txt |& tee test-log.txt &
 
-sleep 6
+sleep 4
 simulateKey y
-sleep 10
+sleep 7
 simulateKey =
 sleep 1
 simulateKey y
@@ -146,6 +148,12 @@ sleep 2
 echo jobs
 jobs -l >jobs.txt
 cat jobs.txt
+
+# check
+set -x
+grep 'Done \+ruby 1-create-bpm-database.rb -dbf dbf.txt' jobs.txt
+tail -n1 test-log.txt | grep '^\[at_exit\] \[.\+\] the end: #<SystemExit: exit>$'
+set +x
 
 
 
