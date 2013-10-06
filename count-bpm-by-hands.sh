@@ -23,12 +23,6 @@ then
 	exit 1
 fi
 
-if [[ ! -s $BYHANDS ]]
-then
-	echo ERROR: BYHANDS environment variable must contain path to an existent file: $BYHANDS
-	exit 1
-fi
-
 
 
 # functions
@@ -40,6 +34,7 @@ function result {
 }
 
 function echo3 {
+	[[ $BYHANDS ]] || return 0
 	echo "$@" >&3
 	sleep 0.1
 }
@@ -88,36 +83,44 @@ function info {
 
 # init
 
-echo Starting mplayer
-echo
-trap 'if tty -s; then stty echo; fi; echo3 quit' EXIT
-exec 3> >(
-	cd "$(dirname "$BYHANDS")"
-	mplayer -slave -noautosub -quiet -identify "$(basename "$BYHANDS")" | perl -n -e '
-		$| = 1;
-		s/\r//g;
-		if (s/\e\[A\e\[K//) { # cut terminal control sequences
-			print if !/^$/
-		}
-		elsif (/^ID_([A-Z\d_]+)=/) { # print ID_ only for LENGTH
-			print if $1 eq "LENGTH"
-		}
-		else {
-			s/ANS_PERCENT_POSITION=(\d+)/Position: $1 %/; # get_percent_pos answer
-			next if /^\s*$/;
-			print
-		}
-	'
-)
-sleep 1.5 # give mplayer some time to start and print his banner
-echo
-reset
-usage
-info
-echo3 loop 0 1 # infinite loop
-sleep 0.5
-echo
-echo PLAYING NOW - TURN SOUND ON!
+if [[ ! $BYHANDS ]]
+then
+	echo
+	echo BYHANDS is empty so just counting without playing
+	reset
+	usage
+else
+	echo Starting mplayer
+	echo
+	trap 'if tty -s; then stty echo; fi; echo3 quit' EXIT
+	exec 3> >(
+		cd "$(dirname "$BYHANDS")"
+		mplayer -slave -noautosub -quiet -identify "$(basename "$BYHANDS")" | perl -n -e '
+			$| = 1;
+			s/\r//g;
+			if (s/\e\[A\e\[K//) { # cut terminal control sequences
+				print if !/^$/
+			}
+			elsif (/^ID_([A-Z\d_]+)=/) { # print ID_ only for LENGTH
+				print if $1 eq "LENGTH"
+			}
+			else {
+				s/ANS_PERCENT_POSITION=(\d+)/Position: $1 %/; # get_percent_pos answer
+				next if /^\s*$/;
+				print
+			}
+		'
+	)
+	sleep 1.5 # give mplayer some time to start and print his banner
+	echo
+	reset
+	usage
+	info
+	echo3 loop 0 1 # infinite loop
+	sleep 0.5
+	echo
+	echo PLAYING NOW - TURN SOUND ON!
+fi
 echo
 
 
