@@ -25,11 +25,11 @@ srand
 
 # get options and ask for confirmation
 
-$options = <<eos
+$options = <<e
 -n n - maximum number of files to add
 -dndo - do not delete old i.e. exit when no space is left on player
 -arbpm - always random bpm even if original is in the range
-eos
+e
 start(true, true) {
 	while ! ARGV.empty?
 		case a = ARGV.shift

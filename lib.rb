@@ -140,18 +140,18 @@ def usage errorMsg = nil
 		puts
 		puts "ERROR! #{errorMsg}"
 	end
-	puts "\noptions:\n   #{$options.split("\n").join("\n   ")}\n"
+	puts "\noptions:\n   #{$options.split("\n").sort.join("\n   ")}\n"
 	exit errorMsg ? 1 : 0
 end
 
 def start readInPlayer = false, getFilterOptions = false
 	$options = "-dbf /bpm/database/file.txt (required)\n#$options"
 	$options = "-prd /player/root/directory (required)\n#$options" if readInPlayer
-	$options += <<eos if getFilterOptions
+	$options += <<e if getFilterOptions
 -r n-n - needed bpm range
 -ob - add only best songs
 -re regexp - add only matched files
-eos
+e
 	usage if ARGV.include? '--help'
 
 	log "#{File.basename $0} started"
