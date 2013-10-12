@@ -12,6 +12,7 @@ $onlyBest = false               # только лучшие песни
 $grep = nil
 maxNumOfFilesToAdd = nil
 dndo = false
+alwaysRandomBpm = false
 
 
 
@@ -27,6 +28,7 @@ srand
 $options = <<eos
 -n n - maximum number of files to add
 -dndo - do not delete old i.e. exit when no space is left on player
+-arbpm - always random bpm even if original is in the range
 eos
 start(true, true) {
 	while ! ARGV.empty?
@@ -37,6 +39,8 @@ start(true, true) {
 				maxNumOfFilesToAdd = maxNumOfFilesToAdd.to_i
 			when '-dndo'
 				dndo = true
+			when '-arbpm'
+				alwaysRandomBpm = true
 		end
 	end
 	usage '-dndo and -ob may not be specified together' if dndo and $onlyBest
@@ -62,13 +66,12 @@ if filtered?
 	puts "----- regexp and/or -ob was specified, #{filesToAdd.count} files matched -----"
 	puts
 end
-puts <<e
-target directory:        #$playerDir (#{playerFreeSpace})
-needed bpm range:        #{rangeStr $rangeNeeded}
-num of files to add:     #{maxNumOfFilesToAdd ? maxNumOfFilesToAdd : 'all'} of #{filesToAdd.count}
-only best songs:         #{$onlyBest ? 'yes' : 'no'}
-do not delete old:       #{dndo ? 'yes' : ''}
-regular expression:      #{$grep ? $grep : 'none'}
+puts <<e.gsub /,$/, ''
+files can be added: #{filesToAdd.count}
+target directory: #$playerDir (#{playerFreeSpace})
+bpm range: #{rangeStr $rangeNeeded}
+filter:#{$onlyBest ? ' only best,' : ''}#{$grep ? " regexp #$grep," : ''}
+options:#{alwaysRandomBpm ? ' always random bpm,' : ''}#{maxNumOfFilesToAdd ? " add no more than #{maxNumOfFilesToAdd} files," : ''}#{dndo ? ' do not delete old files,' : ''}
 e
 usage 'no files to process' if filesToAdd.empty?
 puts

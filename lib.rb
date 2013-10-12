@@ -165,8 +165,8 @@ eos
 		if filtered?
 			msg = []
 			msg.push 'only best' if $onlyBest
-			msg.push "regexp: #$grep" if $grep
-			msg.push "bpm range: #{rangeStr $rangeNeeded} -> #{rangeStr $rangeComLine}" if $rangeComLine
+			msg.push "regexp #$grep" if $grep
+			msg.push "bpm range #{rangeStr $rangeNeeded} -> #{rangeStr $rangeComLine}" if $rangeComLine
 			msg = "filtered mode: #{msg.join ', '}"
 			log '*' * (msg.length+12)
 			log "*#{' ' * (msg.length+10)}*"
