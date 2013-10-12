@@ -145,8 +145,8 @@ def usage errorMsg = nil
 end
 
 def start readInPlayer = false, getFilterOptions = false
-	$options = "-dbf /bpm/database/file.txt (required)\n#$options"
-	$options = "-prd /player/root/directory (required)\n#$options" if readInPlayer
+	$options = "-dbf /bpm/database/file.txt *required*\n#$options"
+	$options = "-prd /player/root/directory *required*\n#$options" if readInPlayer
 	$options += <<e if getFilterOptions
 -r n-n - needed bpm range
 -ob - add only best songs
