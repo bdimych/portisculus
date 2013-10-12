@@ -67,7 +67,7 @@ if filtered?
 	puts
 end
 puts <<e.gsub /,$/, ''
-files can be added: #{filesToAdd.count}
+files to add: #{filesToAdd.count}
 target directory: #$playerDir (#{playerFreeSpace})
 bpm range: #{rangeStr $rangeNeeded}
 filter:#{$onlyBest ? ' only best,' : ''}#{$grep ? " regexp #$grep," : ''}
