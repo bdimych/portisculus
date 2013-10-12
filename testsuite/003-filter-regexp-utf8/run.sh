@@ -11,7 +11,7 @@ if ! {
 	grep 'regexp and/or -ob was specified, 1 files matched' out.txt &&
 	grep 'testsuite/003-filter-regexp-utf8/01 Отцы.mp3' out.txt &&
 	grep 'files to add: 1$' out.txt &&
-	grep 'filter: regexp отцы$'
+	grep 'filter: regexp отцы$' out.txt
 }
 then
 	echo ERROR: could not find expected strings
