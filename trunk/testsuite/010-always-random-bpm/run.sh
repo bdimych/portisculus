@@ -6,3 +6,5 @@ echo -n yyn | ruby 2-fill-player.rb -dbf testsuite/010-always-random-bpm/баз�
 
 rm -rv testsuite/010-always-random-bpm/плеер-рут/portisculus-1 лог.текст
 
+echo test ok
+
