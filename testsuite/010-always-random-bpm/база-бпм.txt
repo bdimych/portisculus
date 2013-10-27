@@ -1,0 +1,3 @@
+testsuite/010-always-random-bpm/03. Dark Side of the Moon (Piano Mix).mp3: 140
+testsuite/010-always-random-bpm/06 - Зебры.mp3: 177
+testsuite/010-always-random-bpm/83_Cappella_-_U_Got_2_Let_The_Music.MP3: 135
