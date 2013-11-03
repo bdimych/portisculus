@@ -279,11 +279,18 @@ filesToAdd.shuffle.each_with_index do |f, i|
 	else
 		origBpm = $db[f][:bpm].to_i
 		log "original bpm #{origBpm}"
-		if $rangeNeeded.include? origBpm
-			log 'appropriate, will copy unchanged'
+		if alwaysRandomBpm
+			log 'get new bpm because arbpm flag is set'
+			getNewBpm = true
+		elsif $rangeNeeded.include? origBpm
+			log "it's already in the required range"
 			newBpm = origBpm
+			getNewBpm = false
 		else
-			log 'out of the needed range, will calculate new'
+			log 'get new bpm'
+			getNewBpm = true
+		end
+		if getNewBpm
 			allowedMin = (origBpm * rangeCoefAllowed[0]).to_i
 			allowedMax = (origBpm * rangeCoefAllowed[1]).to_i
 			log "allowed range: #{allowedMin}-#{allowedMax}"
