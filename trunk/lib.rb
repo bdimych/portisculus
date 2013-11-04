@@ -13,7 +13,6 @@ Encoding.default_internal = Encoding.default_external = 'binary'
 
 require 'pathname'
 require 'fileutils'
-require 'mp3info'
 
 
 
@@ -32,15 +31,30 @@ end
 
 
 
-
-if %x(soundstretch 2>&1) !~ /SoundStretch.*Written by Olli Parviainen/
-	raise 'could not run soundstretch'
+log 'check required programs/libraries'
+reqProgsNotFound = []
+checkReqProg = lambda do |name, &block|
+	log name
+	return if block.call
+	log "#{name} check failed"
+	reqProgsNotFound.push name
 end
-
-raise 'could not run mplayer' if ! system('mplayer >/dev/null')
-
-raise 'could not run ffmpeg' if ! system('ffmpeg -version >/dev/null')
-
+checkReqProg.call('ffmpeg') {system 'ffmpeg -version >/dev/null'}
+=begin жду когда поправят https://github.com/moumar/ruby-mp3info/issues/28 см. checkSongLength
+checkReqProg.call('mp3info') {
+	begin
+		require 'mp3info'
+	rescue Exception => e
+		p e
+		false
+	end
+}
+=end
+checkReqProg.call('mplayer') {system 'mplayer >/dev/null'}
+checkReqProg.call('soundstretch') {%x(soundstretch 2>&1) =~ /SoundStretch.*Written by Olli Parviainen/}
+if ! reqProgsNotFound.empty?
+	raise "required programs/libraries check failed: #{reqProgsNotFound.join ', '}"
+end
 
 
 
