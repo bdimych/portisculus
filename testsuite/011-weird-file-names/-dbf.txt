@@ -1,0 +1,10 @@
+#.
+# ./!
+testsuite/011-weird-file-names/./!/- Automatic lover (call for love) by Soul2soull.mp3: 150
+ #./-
+./testsuite/011-weird-file-names/-/- Nadia - Beatman (radio mix)-Djk by Soul2soull.mp3: 150
+
+testsuite/011-weird-file-names/- D-Bomb - Mysle...(D-Tune remix) by Soul2soull.mp3: 150
+./testsuite/011-weird-file-names/- Love & devotion by Soul2soull.mp3: 150
+	# ./--
+	testsuite/011-weird-file-names/--/- Take me away by Soul2soull.mp3: 150
