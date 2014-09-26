@@ -553,7 +553,7 @@ def checkSongLength file, tooLongHash
 	# когда поправят верну mp3info а пока mplayer
 	#
 	# 2014-09-26 14:46:12
-	# мою 28 вроде поправил но там другая такая же появилась https://github.com/moumar/ruby-mp3info/issues/42
+	# мою 28 вроде поправили но там новая такая же появилась https://github.com/moumar/ruby-mp3info/issues/42
 	# жду дальше...
 	#
 	l = 0
