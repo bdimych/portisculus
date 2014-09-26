@@ -552,9 +552,13 @@ def checkSongLength file, tooLongHash
 	# нашёл багу mp3info может неправильно определить длину https://github.com/moumar/ruby-mp3info/issues/28
 	# когда поправят верну mp3info а пока mplayer
 	#
+	# 2014-09-26 14:46:12
+	# мою 28 вроде поправил но там другая такая же появилась https://github.com/moumar/ruby-mp3info/issues/42
+	# жду дальше...
+	#
 	l = 0
 	Dir.chdir File.dirname(file) do
-		IO.popen %W(mplayer -noconfig all -cache-min 0 -vo null -ao null -frames 0 -identify #{File.basename file}) + [:err => [:child, :out]] do |pipe|
+		IO.popen %W(mplayer -noconfig all -cache-min 0 -vo null -ao null -frames 0 -identify -- #{File.basename file}) + [:err => [:child, :out]] do |pipe|
 			pipe.each_line do |line|
 				if line =~/ID_LENGTH=(.+)/
 					l = $1.to_f.round
